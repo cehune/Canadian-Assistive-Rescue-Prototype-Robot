@@ -1,6 +1,6 @@
 # Canadian-Assistive-Rescue-Prototype-Robot
 
-# -we can figure out the readme later?-
+# -we can figure out the readme later lol-
 
 Final Project for the 1A Mechatronics Engineering Term at the University of Waterloo. 
 ![Untitled design (4)](https://user-images.githubusercontent.com/71574223/202064548-eb99529f-b643-4678-8e70-7aa5af253d09.png)
