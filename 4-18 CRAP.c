@@ -1,9 +1,9 @@
-void configure_all_sensors();
+/*void configure_all_sensors();
 void drive(int distance, int motor_power);
 void rotate(bool dir, int motor_power);
 void rotate_to_begin(int quadrant, int motor_power);
 void return_to_base();
-
+*/
 void calculate_order(int *last_time_seen, int *order)
 {
 
@@ -22,19 +22,6 @@ void calculate_order(int *last_time_seen, int *order)
 
 }
 
-task main()
-{
-	const int ROTATE_90 = 90;
-	configure_all_sensors();
-
-	int names[4];
-	int quadrant[4];
-	int last_time_seen[4];
-	int order[4] = {1, 2, 3 , 4};
-
-
-
-}
 
 void configure_all_sensors()
 {
@@ -51,7 +38,7 @@ void configure_all_sensors()
  SensorMode[S4] = modeEV3Gyro_RateAndAngle;
 }
 
-void drive(int distance, int motor_power)
+int drive_path(int distance, int motor_power)
 {
 
 	nMotorEncoder[motorA] = 0;
@@ -61,14 +48,25 @@ void drive(int distance, int motor_power)
 	{}
 
 	motor[motorA] = motor[motorD] = 0;
-	return;
+	wait1Msec(500);
+	return 0;
 }
+
+/*
+		Only on the return path will the robot have to worry about sensing the black type
+		that marks the middle, therefore, I'm creating a seperate function to drive back to
+		the centre. Otherwise, we would have a single drive function checking the colour sensor
+		while its out and about on the bouphostredon, which is inefficient.
+*/
+int drive_return(int distance, int motor_power)
+{}
+
 
 
 /*
 	every turn should increment, based on how it moves. It needs to change the direction based on what the gyro value is.
 */
-void rotate(bool dir, int motor_power, int angle, bool returning ) // dir=1 for ccw
+void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 {
 	int  current_dir = abs(SensorValue(S4));
 	motor[motorA]=(dir*1+!dir*-1)*motor_power; //+ if dir==1
@@ -91,6 +89,7 @@ void rotate(bool dir, int motor_power, int angle, bool returning ) // dir=1 for 
 
 	motor[motorB]=0;
 	motor[motorC]=0;
+	wait1Msec(500);
 	return;
 }
 //Done
@@ -149,4 +148,61 @@ void rotate_to_begin(int quadrant, int motor_power)
 			}
 	}
 	return;
+}
+
+void bouphostredon(int motor_power, int length, int width, int quadrant)
+{
+		int found_person = 0;
+
+		int count_13 = 0;
+		int count_24 = 1;
+		if (quadrant == 1 || quadrant == 3)
+		{
+				count_13 = 1;
+				count_24 = 0;
+		}
+
+
+		while( count_13 < 5 && count_24 < 5)
+		{
+				if (count_13 % 2 == 1)
+				{
+
+							found_person = drive_path(length, motor_power);
+							if (found_person == 1) return;
+							rotate(1, motor_power, 90);
+
+							found_person = drive_path(width, motor_power);
+							if (found_person == 1) return;
+							rotate(1, motor_power, 90)
+
+				}
+				else
+				{
+							found_person = drive_path(length, motor_power);
+							if (found_person == 1) return;
+							rotate(0, motor_power, 90);
+
+							found_person = drive_path(width, motor_power);
+							if (found_person == 1) return;
+							rotate(0, motor_power, 90)
+				}
+				++count_13;
+				++count_24;
+		}
+}
+
+
+task main()
+{
+	const int ROTATE_90 = 90;
+	configure_all_sensors();
+
+	int names[4];
+	int quadrant[4];
+	int last_time_seen[4];
+	int order[4] = {1, 2, 3 , 4};
+
+
+
 }
