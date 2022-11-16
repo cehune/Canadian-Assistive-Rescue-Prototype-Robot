@@ -37,35 +37,6 @@ void configure_all_sensors()
  wait1Msec(100);
  SensorMode[S4] = modeEV3Gyro_RateAndAngle;
 }
-
-int drive_path(int distance, int motor_power)
-{
-
-	nMotorEncoder[motorA] = 0;
-	motor[motorA] = motor[motorD] = motor_power;
-
-	while(nMotorEncoder[motorA] < distance*180/(PI*2.75))
-	{}
-
-	motor[motorA] = motor[motorD] = 0;
-	wait1Msec(500);
-	return 0;
-}
-
-/*
-		Only on the return path will the robot have to worry about sensing the black type
-		that marks the middle, therefore, I'm creating a seperate function to drive back to
-		the centre. Otherwise, we would have a single drive function checking the colour sensor
-		while its out and about on the bouphostredon, which is inefficient.
-*/
-int drive_return(int distance, int motor_power)
-{}
-
-
-
-/*
-	every turn should increment, based on how it moves. It needs to change the direction based on what the gyro value is.
-*/
 void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 {
 	int  current_dir = abs(SensorValue(S4));
@@ -92,6 +63,60 @@ void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 	wait1Msec(500);
 	return;
 }
+
+void manouver_obstacle()
+{}
+
+/*
+
+We track the motor encoder counts here, but we might want TO_BLUETOOTO_BLUETOOTH
+do this inside of the actual maneouver obstacle func
+
+*/
+int drive_path(int distance, int motor_power)
+{
+	int x = 50;
+	const int TO_COUNTS = 180/(PI*2.75);
+
+	nMotorEncoder[motorA] = 0;
+	motor[motorA] = motor[motorD] = motor_power;
+
+	while(nMotorEncoder[motorA] < distance*TO_COUNTS)
+	{
+			if (SensorValue[2] <= x)
+			{
+				wait1Msec(500);
+				int current_counts = nMotorEncoder[motorA];
+				manouver_obstacle();
+				nMotorEncoder[motorA] = current_counts + x*TO_COUNTS;
+			}
+			else if (SensorValue[S1] <= x && SensorValue[S2] >= x)
+			{
+					return 1;
+			}
+
+	}
+
+	motor[motorA] = motor[motorD] = 0;
+	wait1Msec(500);
+	return 0;
+}
+
+/*
+		Only on the return path will the robot have to worry about sensing the black type
+		that marks the middle, therefore, I'm creating a seperate function to drive back to
+		the centre. Otherwise, we would have a single drive function checking the colour sensor
+		while its out and about on the bouphostredon, which is inefficient.
+*/
+int drive_return(int distance, int motor_power)
+{}
+
+
+
+/*
+	every turn should increment, based on how it moves. It needs to change the direction based on what the gyro value is.
+*/
+
 //Done
 void rotate_to_begin(int quadrant, int motor_power)
 {
