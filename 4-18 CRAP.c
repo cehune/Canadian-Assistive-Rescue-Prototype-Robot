@@ -50,7 +50,8 @@ void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 			while (abs(SensorValue[S4]) < current_dir  + angle)
 			{	}
 	}
-	else (dir == 1)
+
+	else
 	{
 			while ((SensorValue[S4]) > current_dir + angle)
 			{	}
@@ -66,6 +67,13 @@ void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 	return;
 }
 
+
+/*
+		I believe that the 2 clock wise and 2 counter clockwise rotations will
+		counter eachother's motor encoder counts, so the only changes will be the driving
+		counts
+
+*/
 void manouver_obstacle(int motor_power)
 {
 		int x = 50;
@@ -91,12 +99,14 @@ void manouver_obstacle(int motor_power)
 
 int catch_person()
 {}
+
 /*
 
 We track the motor encoder counts here, but we might want TO_BLUETOOTO_BLUETOOTH
 do this inside of the actual maneouver obstacle func
 
 */
+
 int drive_path(int distance, int motor_power)
 {
 	int x = 50;
@@ -130,8 +140,27 @@ int drive_path(int distance, int motor_power)
 		the centre. Otherwise, we would have a single drive function checking the colour sensor
 		while its out and about on the bouphostredon, which is inefficient.
 */
-int drive_return(int distance, int motor_power)
-{}
+void drive_return(int distance, int motor_power)
+{
+		int x = 50;
+		const int TO_COUNTS = 180/(PI*2.75);
+
+		nMotorEncoder[motorA] = 0;
+		motor[motorA] = motor[motorD] = motor_power;
+
+		while(nMotorEncoder[motorA] < distance*TO_COUNTS)
+		{
+				//The color sensor
+				if (SensorValue[3] == 1)
+				{
+					return;
+				}
+		}
+
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(500);
+		return;
+}
 
 
 
@@ -221,7 +250,7 @@ void bouphostredon(int motor_power, int length, int width, int quadrant)
 
 							found_person = drive_path(width, motor_power);
 							if (found_person == 1) return;
-							rotate(1, motor_power, 90)
+							rotate(1, motor_power, 90);
 
 				}
 				else
@@ -232,7 +261,7 @@ void bouphostredon(int motor_power, int length, int width, int quadrant)
 
 							found_person = drive_path(width, motor_power);
 							if (found_person == 1) return;
-							rotate(0, motor_power, 90)
+							rotate(0, motor_power, 90);
 				}
 				++count_13;
 				++count_24;
@@ -244,11 +273,6 @@ task main()
 {
 	const int ROTATE_90 = 90;
 	configure_all_sensors();
-
-	int names[4];
-	int quadrant[4];
-	int last_time_seen[4];
-	int order[4] = {1, 2, 3 , 4};
 
 
 
