@@ -67,6 +67,8 @@ void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 void manouver_obstacle()
 {}
 
+int catch_person()
+{}
 /*
 
 We track the motor encoder counts here, but we might want TO_BLUETOOTO_BLUETOOTH
@@ -92,6 +94,7 @@ int drive_path(int distance, int motor_power)
 			}
 			else if (SensorValue[S1] <= x && SensorValue[S2] >= x)
 			{
+					catch_person();
 					return 1;
 			}
 
