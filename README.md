@@ -4,14 +4,14 @@ Final Project for the 1A Mechatronics Engineering Term at the University of Wate
 
 We are group 4-18. Our members include Kevin Wang, Vedha Mereddy, Janet Pham, and Mckale Chung. 
 
-#Purpose
+# Purpose
 It is easy for individuals to get lost in harsh, isolated environments with extreme negative temperatures. 
 
 However, sending other people to save these individuals comes with heavy risk due to the dangers and challenges of those particular environments and the high probability for the mission to fail and put more lives at risk. 
 
 The Canadian Assistive Rescue Prototype automates the search and rescue process. It simulates this on a playing field with four quadrants, and a home base at the middle. We give the robot a file documenting the people it must save, their location, and how long they have been exposed to the cold environment. It then travels a boustrophedon, avoiding obstacles, until it finds the person it needs to save. It then returns them back to the center, drops them off, and moves on to save the next person.  
 
-#Mechanical Design
+# Mechanical Design
 This robot is made of Lego Ev3 Components, and programmed with RobotC. 
 
 The main design component is the sweeping mechanism at the front. It opens via a medium EV3 motor, and closes to secure the person in place. 
