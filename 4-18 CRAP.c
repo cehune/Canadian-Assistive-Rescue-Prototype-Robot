@@ -1,9 +1,12 @@
-/*void configure_all_sensors();
-void drive(int distance, int motor_power);
+void configure_all_sensors();
+int drive_path(int distance, int motor_power);
 void rotate(bool dir, int motor_power);
 void rotate_to_begin(int quadrant, int motor_power);
 void return_to_base();
-*/
+void manouver_obstacle(int motor_power);
+
+
+
 void calculate_order(int *last_time_seen, int *order)
 {
 
@@ -18,8 +21,7 @@ void calculate_order(int *last_time_seen, int *order)
             }
         }
     }
-
-
+	return;
 }
 
 
@@ -64,8 +66,28 @@ void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 	return;
 }
 
-void manouver_obstacle()
-{}
+void manouver_obstacle(int motor_power)
+{
+		int x = 50;
+		int y = 100;
+
+		wait1Msec(500);
+		int current_counts = nMotorEncoder[motorA];
+
+		rotate(0, motor_power, 90);
+		drive_path(x, motor_power);
+
+		rotate(1, motor_power, 90);
+		drive_path(y, motor_power);
+
+		rotate(1, motor_power, 90);
+		drive_path(x, motor_power);
+
+		rotate(0, motor_power, 90);
+
+		wait1Msec(500);
+		nMotorEncoder[motorA] = current_counts + (2*x*180/(PI*2.75));
+}
 
 int catch_person()
 {}
@@ -87,10 +109,7 @@ int drive_path(int distance, int motor_power)
 	{
 			if (SensorValue[2] <= x)
 			{
-				wait1Msec(500);
-				int current_counts = nMotorEncoder[motorA];
-				manouver_obstacle();
-				nMotorEncoder[motorA] = current_counts + x*TO_COUNTS;
+				manouver_obstacle(motor_power);
 			}
 			else if (SensorValue[S1] <= x && SensorValue[S2] >= x)
 			{
