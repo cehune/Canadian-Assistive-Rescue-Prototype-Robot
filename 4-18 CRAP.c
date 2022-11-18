@@ -333,7 +333,7 @@ void bouphostredon(int motor_power, int length, int width, int quadrant)
 
 task main()
 {
-<<<<<<< HEAD
+
 	// initialization
 	const int ROTATE_90 = 90;
 	const int Robot_Length = 32;
@@ -347,34 +347,8 @@ task main()
 	int times [4] = {0,0,0,0};
 	int order[4] = {1, 2, 3, 4};
 
-
-
-	// configure all sensors
-=======
-	// initialization 
-	const int ROTATE_90 = 90;
-	const int Robot_Length = 32; 
-	const int Robot_Width = 18; 
-	const int Patient_Size = 2.75; // coke can radius 
-	// const int Obsticle_Size = ; // party cup radius
-
-		
-	// configure all sensors 	
->>>>>>> 216e99ef2cfa4811cf081463e477dfb8fa0216d0
 	configure_all_sensors();
-	
-	// Open the file
-	TFileHandle fin;
-	bool ReadCheck = openReadPC(fin, "Peole_To_Save.txt");
-	
-	// check if the file is opened correctly 
-	if (!ReadCheck)
-	{
-		displayString(5, "Error: Fail to open file");
-		wait1Msec(5000);
-	}
 
-<<<<<<< HEAD
 	// Open the file
 	TFileHandle fin;
 	bool ReadCheck = openReadPC(fin, "Peole_To_Save.txt");
@@ -385,6 +359,7 @@ task main()
 		displayString(5, "Error: Fail to open file");
 		wait1Msec(5000);
 	}
+
 
 	Input(fin, people, quadrant, times);
 	//void calculate_order(times, order);
@@ -396,23 +371,17 @@ task main()
 
 
 	// check if the file is opened correctly
-=======
-	
-		
-		
-	// open 
-	TFileHandle fout;
-	bool WriteCheck = WriteTextPC(fout, "Report.txt");
-	
-	
-	// check if the file is opened correctly 
->>>>>>> 216e99ef2cfa4811cf081463e477dfb8fa0216d0
+
+
+
+	// check if the file is opened correctly
+
 	if (!WriteCheck)
 	{
 		displayString(5, "Error: Fail to open file");
 		wait1Msec(5000);
 	}
-<<<<<<< HEAD
+
 
 	//writeFloatPC(fout, pickuptime);
 	//writeEndlPC(fout);
@@ -420,12 +389,7 @@ task main()
 
 	closeFilePC(fout);
 
-=======
-	
-	writeFloatPC(fout, pickuptime);
-	writeEndlPC(fout);
-	
->>>>>>> 216e99ef2cfa4811cf081463e477dfb8fa0216d0
+
 
 	closeFilePC(fout);
 
