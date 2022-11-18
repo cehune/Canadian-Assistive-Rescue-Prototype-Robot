@@ -5,7 +5,10 @@ void rotate_to_begin(int quadrant, int motor_power);
 void return_to_base();
 void manouver_obstacle(int motor_power);
 
+/*
+ADJUST WHEEL SIZE ON ALL FUNCTIONS
 
+*/
 
 void calculate_order(int *last_time_seen, int *order)
 {
@@ -39,6 +42,8 @@ void configure_all_sensors()
  wait1Msec(100);
  SensorMode[S4] = modeEV3Gyro_RateAndAngle;
 }
+
+
 void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 {
 	int  current_dir = abs(SensorValue(S4));
@@ -57,9 +62,9 @@ void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 			{	}
 	}
 
-	/*
 
-	Heres the */
+
+
 
 	motor[motorB]=0;
 	motor[motorC]=0;
@@ -97,8 +102,37 @@ void manouver_obstacle(int motor_power)
 		nMotorEncoder[motorA] = current_counts + (2*x*180/(PI*2.75));
 }
 
-int catch_person()
-{}
+/*
+	I am not calling a drive function here, because if I call drive path it will make create
+	an unecessary back and forth between the two functions, as drive_path will continuoutsly recall
+	catch_person because the person is close.
+
+	Also we can afford toreset the motor encoder count here becayse it is returning after this function call.
+
+	distance variable should be equal to same amount that the distance away from the person
+	that the ir sensor senss\es them
+*/
+void catch_person( int motor_power)
+{
+	nMotorEncoder[motorB] = 0;
+	motor[motorB]= motor_power;
+	while(nMotorEncoder[motorB] < 90)
+	{}
+
+
+	nMotorEncoder[motorA] = 0;
+	int const distance = 50;
+	int const distance_counts = distance * 180 / (2.75 * PI)
+	motor[motorA] = motor[motorD] = motor_power;
+	while(nMotorEncoder[motorA] < distance_counts)
+	{}
+
+	motor[motorB]= -motor_power;
+	while(nMotorEncoder[motorB] > 0)
+	{}
+
+	return;
+}
 
 /*
 
@@ -123,7 +157,7 @@ int drive_path(int distance, int motor_power)
 			}
 			else if (SensorValue[S1] <= x && SensorValue[S2] >= x)
 			{
-					catch_person();
+					catch_person(motor_power);
 					return 1;
 			}
 
