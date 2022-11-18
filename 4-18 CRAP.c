@@ -1,3 +1,5 @@
+#include "PC_FileIO.c"
+
 void configure_all_sensors();
 int drive_path(int distance, int motor_power);
 void rotate(bool dir, int motor_power);
@@ -305,9 +307,47 @@ void bouphostredon(int motor_power, int length, int width, int quadrant)
 
 task main()
 {
+	// initialization 
 	const int ROTATE_90 = 90;
+	const int Robot_Length = 32; 
+	const int Robot_Width = 18; 
+	const int Patient_Size = 2.75; // coke can radius 
+	// const int Obsticle_Size = ; // party cup radius
+
+		
+	// configure all sensors 	
 	configure_all_sensors();
+	
+	// Open the file
+	TFileHandle fin;
+	bool ReadCheck = openReadPC(fin, "Peole_To_Save.txt");
+	
+	// check if the file is opened correctly 
+	if (!ReadCheck)
+	{
+		displayString(5, "Error: Fail to open file");
+		wait1Msec(5000);
+	}
 
+	
+		
+		
+	// open 
+	TFileHandle fout;
+	bool WriteCheck = WriteTextPC(fout, "Report.txt");
+	
+	
+	// check if the file is opened correctly 
+	if (!WriteCheck)
+	{
+		displayString(5, "Error: Fail to open file");
+		wait1Msec(5000);
+	}
+	
+	writeFloatPC(fout, pickuptime);
+	writeEndlPC(fout);
+	
 
+	closeFilePC(fout);
 
 }
