@@ -1,4 +1,4 @@
-Jeremy 1 30
-Thomas 4 7
-Ryan 2 15
-Nassar 3 20
+J 1 30
+T 4 7
+R 2 15
+N 3 20

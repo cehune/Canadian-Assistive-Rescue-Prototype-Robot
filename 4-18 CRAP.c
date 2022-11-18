@@ -1,3 +1,5 @@
+#include "PC_FileIO.c"
+
 void configure_all_sensors();
 int drive_path(int distance, int motor_power);
 void rotate(bool dir, int motor_power);
@@ -9,6 +11,32 @@ void manouver_obstacle(int motor_power);
 ADJUST WHEEL SIZE ON ALL FUNCTIONS
 
 */
+void Input (TFileHandle & fin, char *Name, int *Location, int *TimeLastSeen)
+{
+
+	int count = 0;
+	while(count < 4)
+	{
+		char current_name = ' ';
+		int current_location = 0;
+		int time = 0;
+		readCharPC(fin, current_name);
+		Name[count] = current_name;
+
+		readIntPC(fin, current_location);
+		Location[count] = current_location;
+
+		readIntPC(fin, time);
+		TimeLastSeen[count] = time;
+	//	Location[Name] = Quadrant;
+		//TimeLastSeen[Name] = Time;
+		++count;
+	}
+
+	return;
+}
+
+
 
 void calculate_order(int *last_time_seen, int *order)
 {
@@ -305,8 +333,56 @@ void bouphostredon(int motor_power, int length, int width, int quadrant)
 
 task main()
 {
+	// initialization
 	const int ROTATE_90 = 90;
+	const int Robot_Length = 32;
+	const int Robot_Width = 18;
+	const int Patient_Size = 2.75; // coke can radius
+	// const int Obsticle_Size = ; // party cup radius
+
+
+	char people[4] = {'A', 'B', 'C', 'D'};
+	int quadrant [4] = {0, 0, 0, 0};
+	int times [4] = {0,0,0,0};
+	int order[4] = {1, 2, 3, 4};
+
+
+
+	// configure all sensors
 	configure_all_sensors();
+
+	// Open the file
+	TFileHandle fin;
+	bool ReadCheck = openReadPC(fin, "Peole_To_Save.txt");
+
+	// check if the file is opened correctly
+	if (!ReadCheck)
+	{
+		displayString(5, "Error: Fail to open file");
+		wait1Msec(5000);
+	}
+
+	Input(fin, people, quadrant, times);
+	//void calculate_order(times, order);
+
+
+	// open
+	TFileHandle fout;
+	bool WriteCheck = WriteTextPC(fout, "Report.txt");
+
+
+	// check if the file is opened correctly
+	if (!WriteCheck)
+	{
+		displayString(5, "Error: Fail to open file");
+		wait1Msec(5000);
+	}
+
+	//writeFloatPC(fout, pickuptime);
+	//writeEndlPC(fout);
+
+
+	closeFilePC(fout);
 
 
 
