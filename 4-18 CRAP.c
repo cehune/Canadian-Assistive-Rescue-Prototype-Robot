@@ -244,22 +244,25 @@ void rotate(bool dir, int motor_power, int angle)
 {
 	//current gyro value
 	int  current_dir = (SensorValue(S4));
-	motor[motorA]=(dir*1+!dir*-1)*motor_power;
-	motor[motorD]=(!dir*1+dir*-1)*motor_power;
-
+	int next_angle = current_dir + angle;
 	//If it is turning clockwise, the gyro will increase.
 	//Therefore, the sensor value turns while it is less than the sum
 	//of current_dir and the angle.
 	if (dir == 0)
 	{
-			while (SensorValue[S4] < current_dir  + angle)
+				motor[motorA]=(dir*1+!dir*-1)*motor_power;
+			motor[motorD]=(!dir*1+dir*-1)*motor_power;
+			while (SensorValue[S4] < next_angle)
 			{	}
 	}
 
 	//Opposite as the comment above.
 	else
 	{
-			while ((SensorValue[S4]) > current_dir + angle)
+
+				motor[motorA]=(dir*1+!dir*-1)*motor_power;
+	motor[motorD]=(!dir*1+dir*-1)*motor_power;
+			while ((SensorValue[S4]) > next_angle)
 			{	}
 	}
 
@@ -406,7 +409,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 
 	while(nMotorEncoder[motorA] < distance*TO_COUNTS)
 	{
-			if (SensorValue[S2] <= x)
+		/*	if (SensorValue[S2] <= x)
 			{
 				//checks for obstacles using the ultrasonic sensor
 				manouver_obstacle(motor_power_drive, motor_power_rotate);
@@ -419,7 +422,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 			{
 					catch_person(motor_power_drive);
 					return 1;
-			}
+			}*/
 
 	}
 
@@ -707,39 +710,39 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 {
 
+	SensorValue[S4] = 0;
+
 	if (quadrant == 3 || quadrant == 4)
 	{
 				rotate(0, motor_power_rotate, 180);
 	}
 
 	motor[motorA] = motor[motorD] = motor_power_drive;
-	while(SensorValue[S4] != 1)
+	while(SensorValue[S3] != 1)
 	{}
 	motor[motorA] = motor[motorD] = 0;
 	wait1Msec(500);
 
 
-	if (quadrant == 1 || quadrant == 3)
-	{
-			rotate(0, motor_power_rotate, 90);
-	}
-	else if (quadrant == 2 || quadrant == 4)
-	{
-			rotate(1, motor_power_rotate, -90);
-	}
+	//if (quadrant == 1 || quadrant == 3)
+	//{
+			rotate(0, motor_power_rotate, 80);
+//	}
+	//else if (quadrant == 2 || quadrant == 4)
+//	{
+//			rotate(1, motor_power_rotate, -90);
+//	}
 
 
 	motor[motorA] = motor[motorD] = 0;
-	nMotorEncoder[motorA] = 0;
-	wait1Msec(500);
+
+	wait1Msec(1000);
 
 	//Drives a set distance out of the center.
-	motor[motorA] = motor[motorD] = motor_power_drive;
-	while(nMotorEncoder[motorA] < (10 * 180 / (2.80 * PI)))
-	{}
-	motor[motorA] = motor[motorD] = 0;
-	wait1Msec(500);
+	drive_dist(20, motor_power_drive);
 
+	motor[motorA] = motor[motorD] = 0;
+	wait1Msec(1000);
 //leads into the bouphostredon function
 	return;
 }
@@ -770,12 +773,12 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				end one iteration early. Therefore, we created another count variable to mediate
 				this issue.
 		*/
-		int count_13 = 0;
-		int count_24 = 1;
-		if (quadrant == 1 || quadrant == 3)
+		int count_13 = 1;
+		int count_24 = 0;
+		if (quadrant == 2 || quadrant == 4)
 		{
-				count_13 = 1;
-				count_24 = 0;
+				count_13 = 0;
+				count_24 = 1;
 		}
 
 
@@ -786,22 +789,21 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, 90);
+							rotate(1, motor_power_rotate, -80);
 
 							found_person = drive_path(width, motor_power_drive,  motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, 90);
-
+							rotate(1, motor_power_rotate, -80);
 				}
 				else
 				{
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 90);
+							rotate(0, motor_power_rotate, 80);
 
 							found_person = drive_path(width, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 90);
+							rotate(0, motor_power_rotate, 80);
 				}
 				++count_13;
 				++count_24;
@@ -819,10 +821,10 @@ task main()
 	const int Robot_Width = 18;
 	const int Patient_Size = 2.75; // coke can radius*/
 	// const int Obsticle_Size = ; // party cup radius
-	const int MOTOR_POWER_DRIVE = 50;
+	const int MOTOR_POWER_DRIVE = 30;
 	const int MOTOR_POWER_ROTATE = 10;
 	const int BOUPHOSTREDON_LENGTH = 100;
-	const int BOUPHOSTREDON_WIDTH = 20;
+	const int BOUPHOSTREDON_WIDTH = 40;
 
 	//all data arrays
 	char people[4] = {'A', 'B', 'C', 'D'};
@@ -871,7 +873,7 @@ task main()
 		int saved_person = 0;
 		float time = 0;
 
-		exit_centre(20, MOTOR_POWER_ROTATE, quadrant);
+		exit_centre(30, MOTOR_POWER_ROTATE, quadrant);
 
 	 	saved_person = bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
 	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, quadrant);
