@@ -1,15 +1,32 @@
 #include "PC_FileIO.c"
 
+void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen);
+void Output (TFileHandle & fout, char name, float time_taken, int found_person);
+void calculate_exposure (float time_to_save, int time_last_seen, float *updated_times, int patient_num);
 void configure_all_sensors();
-int drive_path(int distance, int motor_power);
-void rotate(bool dir, int motor_power);
-void rotate_to_begin(int quadrant, int motor_power);
-void return_to_base();
+void rotate(bool dir, int motor_power, int angle);
 void manouver_obstacle(int motor_power);
+void catch_person( int motor_power);
+int drive_path(int distance, int motor_power_drive, int motor_power_rotate);
+void rotate_to_begin(int quadrant, int motor_power);
+void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadrant);
+void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant);
+int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int width, int quadrant);
+
+
 
 /*
-ADJUST WHEEL SIZE ON ALL FUNCTIONS
+		Fills arrays witht the information of the patients
 
+		Parameters
+				TFileHandle & fin: Reference to the input file
+				char *name: Array that will store Patient nams
+				int *location: Array that will store the quadrants each person
+						is in
+				int *time_last_seen: Array that will store the amount of time in
+						minutes that the person has been lost for
+
+		What it does
 */
 void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 {
@@ -17,6 +34,12 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 	int count = 0;
 	while(count < 4)
 	{
+		/*
+				Creating variables to read the file info into.
+				Then we set the name, location, and time_last_seen
+				arrays at the index of count as the variables we just
+				created.
+		*/
 		char current_name = ' ';
 		int current_location = 0;
 		int time = 0;
@@ -28,8 +51,7 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 
 		readIntPC(fin, time);
 		time_last_seen[count] = time;
-	//	Location[Name] = Quadrant;
-		//TimeLastSeen[Name] = Time;
+
 		++count;
 	}
 
@@ -37,8 +59,9 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 }
 
 /*
-	should call this everytime it saves someone, feeding in that persons index
-	in the names and pick_up_time arrays
+	At the end of each iteration in main, it will call this function
+	to output the information of a single person.
+	This includes their name and the time they were exposed for.
 */
 void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 {
@@ -53,6 +76,17 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 		writeTextPC(fout, minutes_word);
 		writeEndlPC(fout);
 	}
+
+	/*
+			The int found_person is set to 1 if the robot found a person during its
+			bouphostredon journey. If it finishes the bouphotredon path function
+			without finding someone, then found_person is set to 0, meaning
+			the robot could not find a person.
+
+			This part of the function should never happen. If it does, then the
+			function outputs that it could not find the person, and that they are
+			still lost out in the wilderness.
+	*/
 	else
 	{
 			string couldnt_find_person = "could not find ";
@@ -64,7 +98,36 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 
 
 
+/*
+		This is a selection sorting algorithm to calculate the order that the robot should
+		save people.
 
+		Parameters
+				last_time_seen: The array containing the last time that each person was seen,
+						given by the input file.
+				order: An array we are updating to contain the indexes of people in the order
+						of largest time_last_seen to smallest.
+
+
+		What it does
+				We initialize the order array as {0, 1, 2, 3}, representing the index of each values.
+				The function makes a copy of the values of the last_time_seen array, and sorts that
+				copy as to not edit the original. This copy is called times_copy.
+
+				While sorting times_copy, the function rearranges the order array with the same switches.
+
+				This means that by the end, while the times_copy array is sorted from greatest to least,
+				the order array holds the indexes of the greatest value in last_time_seen to least.
+
+				If last_time_seen = {5, 7, 8, 2}
+				times_copy would sort to {8, 7, 5, 2}
+				and order would rearrange to {2, 1, 0, 3}
+
+				The value at the first index of order, 2, is the index of last_time_seen with the greatest
+				value. The value at the second index, 1, represents the index of the second largest value
+				in last_time_seen, 7.
+
+*/
 void calculate_order(int *last_time_seen, int *order)
 {
 	int temp = 0;
@@ -84,6 +147,11 @@ void calculate_order(int *last_time_seen, int *order)
                 temp = times_copy[j];
                 times_copy[j] = times_copy[i];
                 times_copy[i] = temp;
+
+                /*
+                		Using temporary variables to temporarily store the value of an index
+                		while we switch it with the position of another.
+                */
                 temp2 = order[j];
                 order[j] = order[i];
                 order[i] = temp2;
@@ -93,11 +161,31 @@ void calculate_order(int *last_time_seen, int *order)
 	return;
 }
 
-void calculate_exposure (int time_to_save, int time_last_seen, int *updated_times, int patient_num)
+
+/*
+		Calculates the time a person was exposed to the winter.
+
+		Parameters
+				time_to_save: The time taken for the robot to save the person in seconds.
+						we treat these as minutes for our simulation (10 seconds our time is 10 minutes)
+						for the simulation.
+				time_last_seen: The time last seen given by the input file
+				updated_times: An array containing the total exposure time. The function updates this
+						to contain what it calculates as the total exposure time.
+				patient_num: The index corresponding to the persons name and other information.
+
+		What it does
+				The function adds the time_last_seen and time_to_save, and adds these values to
+				the updated times array at the index of patient_num
+*/
+void calculate_exposure (float time_to_save, int time_last_seen, float *updated_times, int patient_num)
 {
 	updated_times[patient_num] = time_last_seen + time_to_save;
+	return;
 }
 
+
+//Config
 void configure_all_sensors()
 {
  SensorType[S1] = sensorEV3_IRSensor;
@@ -113,29 +201,54 @@ void configure_all_sensors()
  SensorMode[S4] = modeEV3Gyro_RateAndAngle;
 }
 
+/*
+	Rotates the robot at a given angle.
 
-void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
+	Parameters:
+			int dir: 1 or 0. If given 1, it turns counter clockwise. If given
+					0, it turns clockwise.
+
+			int motor_power: Controls the rate of the robot motors. Has to be a
+					lower amount, or else the rotation is less accurate.
+
+			int angle: Must be given an integer angle in degrees. If it is turning
+					counter clockwise (dir = 1), then it must be negative, because
+					the gyro counts would be decreasing. If it is turning clockwise
+					then angle should be given a positive value.
+
+	What it does.
+			We are not allowed to reset the gyro whenever it rotates, as we
+			need to keep a relative gyro count to return to the center. This is
+			further explained in the rotate_to_begin function.
+
+			It tracks the current gyro value using the variable current_dir. Then
+			it adds the given angle (would subtract if the angle is negative), and
+			turns until the gyro values reachs that sum.
+
+
+*/
+void rotate(bool dir, int motor_power, int angle)
 {
-
+	//current gyro value
 	int  current_dir = abs(SensorValue(S4));
-	motor[motorA]=(dir*1+!dir*-1)*motor_power; //+ if dir==1
-	motor[motorD]=(!dir*1+dir*-1)*motor_power; //- if dir==1
+	motor[motorA]=(dir*1+!dir*-1)*motor_power;
+	motor[motorD]=(!dir*1+dir*-1)*motor_power;
 
+	//If it is turning clockwise, the gyro will increase.
+	//Therefore, the sensor value turns while it is less than the sum
+	//of current_dir and the angle.
 	if (dir == 0)
 	{
-			while (abs(SensorValue[S4]) < current_dir  + angle)
+			while (SensorValue[S4] < current_dir  + angle)
 			{	}
 	}
 
+	//Opposite as the comment above.
 	else
 	{
 			while ((SensorValue[S4]) > current_dir + angle)
 			{	}
 	}
-
-
-
-
 
 	motor[motorB]=0;
 	motor[motorC]=0;
@@ -145,12 +258,31 @@ void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 
 
 /*
-		I believe that the 2 clock wise and 2 counter clockwise rotations will
-		counter eachother's motor encoder counts, so the only changes will be the driving
-		counts
+		Moves around an obstacle with a series of rotations.
 
+		Parameters:
+			int motor_power_drive: The motor power when it is driving forward.
+			int motor_power_rotate: The motor power for when the robot is rotating.
+					It should be lower to prevent innacuracies.
+
+		What it does.
+			This function is called when the sensors in drive_path sense an obstacle.
+			The robot makes a right turn and drives a little, perpindicular to its original
+			path. Then it makes a left turn and drives past the obstacle, parallel
+			to its original path. Then the robot does another left turn, and drives
+			to return to its path. It
+			then does a right turn to face its original direction, and then it can
+			continue driving
+
+			The gyro counts should not have a net change after this function is called
+			because the rotations cancel eachother out.
+
+			Lastly, the function deletes the motor encoder counts when driving away and towards
+			the original path. It keeps the encoder counts from when it was driving past the obstacle
+			parallel to its original path because it would've traveled that distance
+			regardless, should it have not encountered an obstacle.
 */
-void manouver_obstacle(int motor_power)
+void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 {
 		int x = 50;
 		int y = 100;
@@ -158,33 +290,81 @@ void manouver_obstacle(int motor_power)
 		wait1Msec(500);
 		int current_counts = nMotorEncoder[motorA];
 
-		rotate(0, motor_power, 90);
-		drive_path(x, motor_power);
+		//right turn and drive
+		rotate(0, motor_power_rotate, 90);
+		motor[motorA] = motor[motorD] = motor_power_drive;
+		nMotorEncoder[motorD] = 0;
 
-		rotate(1, motor_power, -90);
-		drive_path(y, motor_power);
+		while(nMotorEncoder[motorD] < x*180/(PI*2.75))
+		{}
 
-		rotate(1, motor_power, -90);
-		drive_path(x, motor_power);
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(500);
 
-		rotate(0, motor_power, 90);
+
+
+		//left turn and drive past obstacle
+		rotate(1, motor_power_rotate, -90);
+
+		nMotorEncoder[motorD] = 0;
+		motor[motorA] = motor[motorD] = motor_power_drive;
+
+		while(nMotorEncoder[motorD] < y*180/(PI*2.75))
+		{}
+
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(500);
+
+
+
+		//left turn to return to path
+		rotate(1, motor_power_rotate, -90);
+
+		nMotorEncoder[motorD] = 0;
+		motor[motorA] = motor[motorD] = motor_power_drive;
+
+		while(nMotorEncoder[motorD] < x*180/(PI*2.75))
+		{}
+
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(500);
+
+
+
+		//right turn, faces its original path
+		rotate(0, motor_power_rotate, 90);
 
 		wait1Msec(500);
+
+		//reassigns the motor encoder by subtracting the counts
+		//while traveling away and toward its original path
 		nMotorEncoder[motorA] = current_counts + (2*x*180/(PI*2.75));
 }
 
+
+
 /*
-	I am not calling a drive function here, because if I call drive path it will make create
-	an unecessary back and forth between the two functions, as drive_path will continuoutsly recall
-	catch_person because the person is close.
+		Opens the gate and receives the person, then closes the gate
+		to secure them
 
-	Also we can afford toreset the motor encoder count here becayse it is returning after this function call.
+		Parameters
+				int motor_power: The motor power when it is driving forward.
 
-	distance variable should be equal to same amount that the distance away from the person
-	that the ir sensor senss\es them
+		What it does.
+			This function is called when the sensors sense a person in front
+			of it.
+
+			The gate will open first, controlled by the medium motor, motorB.
+			The robot then drives forward to receive the person.
+			The gate then closes, and the function ends, so that the robot can
+			safely return them to the base.
+
+			Should you modify the power for motor B, it must be very low, or the
+			gate will not properly open.
 */
 void catch_person( int motor_power)
 {
+	//opens gate.
 	nMotorEncoder[motorB] = 0;
 	motor[motorB]= -5;
 	while(nMotorEncoder[motorB] > -105)
@@ -192,6 +372,7 @@ void catch_person( int motor_power)
 	motor[motorB]= 0;
 	wait1Msec(1000);
 
+	//drives forward until the person is inside of the safety bed.
 	nMotorEncoder[motorA] = 0;
 	int const distance = 50;
 	int const distance_counts = distance * 180 / (2.75 * PI);
@@ -199,7 +380,8 @@ void catch_person( int motor_power)
 	while(nMotorEncoder[motorA] < distance_counts)
 	{}
 
-		motor[motorB]= 7;
+	//gate closes.
+	motor[motorB]= 7;
 	while(nMotorEncoder[motorB] < 15)
 	{}
 
@@ -213,23 +395,23 @@ do this inside of the actual maneouver obstacle func
 
 */
 
-int drive_path(int distance, int motor_power)
+int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 {
 	int x = 50;
 	const int TO_COUNTS = 180/(PI*2.75);
 
 	nMotorEncoder[motorA] = 0;
-	motor[motorA] = motor[motorD] = motor_power;
+	motor[motorA] = motor[motorD] = motor_power_drive;
 
 	while(nMotorEncoder[motorA] < distance*TO_COUNTS)
 	{
 			if (SensorValue[2] <= x)
 			{
-				manouver_obstacle(motor_power);
+				manouver_obstacle(motor_power_drive, motor_power_rotate);
 			}
 			else if (SensorValue[S1] <= x && SensorValue[S2] >= x)
 			{
-					catch_person(motor_power);
+					catch_person(motor_power_drive);
 					return 1;
 			}
 
@@ -314,11 +496,11 @@ more to get to the true origin.
 make sure to adjust rotation speed.
 
 */
-void return_to_beginning (int motor_power_drive, int motor_power_rotate, int quadrant)
+void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadrant)
 {
 
 		int x = 50;
-		const int TO_COUNTS = 180/(PI*2.75);
+
 		int border = 0;
 		int rotation_dir = 0;
 		int rotation_angle = 90;
@@ -387,7 +569,7 @@ void return_to_beginning (int motor_power_drive, int motor_power_rotate, int qua
 
 					SensorValue[S4] = 0;
 		}
-		else if (quadrant = 4)
+		else if (quadrant == 4)
 		{
 					motor[motorA] = -motor_power_rotate;
 					motor[motorD] = motor_power_rotate;
@@ -461,22 +643,22 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				if (count_13 % 2 == 1)
 				{
 
-							found_person = drive_path(length, motor_power_drive);
+							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
 							rotate(1, motor_power_rotate, 90);
 
-							found_person = drive_path(width, motor_power_drive);
+							found_person = drive_path(width, motor_power_drive,  motor_power_rotate);
 							if (found_person == 1) return 1;
 							rotate(1, motor_power_rotate, 90);
 
 				}
 				else
 				{
-							found_person = drive_path(length, motor_power_drive);
+							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
 							rotate(0, motor_power_rotate, 90);
 
-							found_person = drive_path(width, motor_power_drive);
+							found_person = drive_path(width, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
 							rotate(0, motor_power_rotate, 90);
 				}
@@ -491,42 +673,41 @@ task main()
 {
 
 	// initialization
-	const int ROTATE_90 = 90;
+	/*const int ROTATE_90 = 90;
 	const int Robot_Length = 32;
 	const int Robot_Width = 18;
-	const int Patient_Size = 2.75; // coke can radius
+	const int Patient_Size = 2.75; // coke can radius*/
 	// const int Obsticle_Size = ; // party cup radius
 	const int MOTOR_POWER_DRIVE = 50;
 	const int MOTOR_POWER_ROTATE = 15;
-
 	const int BOUPHOSTREDON_LENGTH = 100;
 	const int BOUPHOSTREDON_WIDTH = 20;
 
+	//all data arrays
 	char people[4] = {'A', 'B', 'C', 'D'};
 	int location[4] = {0, 0, 0, 0};
 	int times [4] = {0,0,0,0};
-	int order[4] = {1, 2, 3, 4};
-	int updated_times [4] = {0,0,0,0};
+	int order[4] = {0, 1, 2, 3};
+	float updated_times [4] = {0,0,0,0};
 
 	configure_all_sensors();
 
-	// Open the file
+	// Opening and error handling the reading file
 	TFileHandle fin;
 	bool ReadCheck = openReadPC(fin, "Peole_To_Save.txt");
 
-	// check if the file is opened correctly
 	if (!ReadCheck)
 	{
 		displayString(5, "Error: Fail to open file");
 		wait1Msec(5000);
 	}
 
-
 	Input(fin, people, location, times);
 	calculate_order(times, order);
-	// open
+
+	// Error handling and opening the writing file
 	TFileHandle fout;
-	bool WriteCheck = WriteTextPC(fout, "Report.txt");
+	bool WriteCheck = writeTextPC(fout, "Report.txt");
 
 	if (!WriteCheck)
 	{
@@ -537,11 +718,11 @@ task main()
 	for (int count = 0; count < 4; ++count)
 	{
 		int quadrant = location[order[count]];
-		int name = people[order[count]]
+		int name = people[order[count]];
 		int time_last_seen = times[order[count]];
 		time1[T1] = 0;
 		int saved_person = 0;
-		int time = 0;
+		float time = 0;
 
 		exit_centre(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, quadrant);
 
@@ -549,20 +730,17 @@ task main()
 	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, quadrant);
 
 	 	rotate_to_begin(quadrant, MOTOR_POWER_ROTATE);
-	 	return_to_beginning (MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, quadrant);
+	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, quadrant);
 
     time = time1[T1];
     time /= 1000;
 
-    calculate_exposure (time, time_last_seen, updated_times, order[count]);
+    calculate_exposure(time, time_last_seen, updated_times, order[count]);
+    Output(fout, name, updated_times[order[count]], saved_person);
+
 	}
 
-
-
 	closeFilePC(fout);
-
-
-
 	closeFilePC(fout);
 
 }
