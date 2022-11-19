@@ -5,9 +5,10 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person);
 void calculate_exposure (float time_to_save, int time_last_seen, float *updated_times, int patient_num);
 void configure_all_sensors();
 void rotate(bool dir, int motor_power, int angle);
-void manouver_obstacle(int motor_power);
+void manouver_obstacle(int motor_power_drive, int motor_power_rotate);
 void catch_person( int motor_power);
 int drive_path(int distance, int motor_power_drive, int motor_power_rotate);
+void drive_dist (int distance, int motor_power);
 void rotate_to_begin(int quadrant, int motor_power);
 void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadrant);
 void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant);
@@ -115,9 +116,9 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 		save people.
 
 		Parameters
-				last_time_seen: The array containing the last time that each person was seen,
+				int *last_time_seen: The array containing the last time that each person was seen,
 						given by the input file.
-				order: An array we are updating to contain the indexes of people in the order
+				int *order: An array we are updating to contain the indexes of people in the order
 						of largest time_last_seen to smallest.
 
 
@@ -178,13 +179,13 @@ void calculate_order(int *last_time_seen, int *order)
 		Calculates the time a person was exposed to the winter.
 
 		Parameters
-				time_to_save: The time taken for the robot to save the person in seconds.
+				float time_to_save: The time taken for the robot to save the person in seconds.
 						we treat these as minutes for our simulation (10 seconds our time is 10 minutes)
 						for the simulation.
-				time_last_seen: The time last seen given by the input file
-				updated_times: An array containing the total exposure time. The function updates this
+				int time_last_seen: The time last seen given by the input file
+				float *updated_times: An array containing the total exposure time. The function updates this
 						to contain what it calculates as the total exposure time.
-				patient_num: The index corresponding to the persons name and other information.
+				int patient_num: The index corresponding to the persons name and other information.
 
 		What it does
 				The function adds the time_last_seen and time_to_save, and adds these values to
@@ -304,43 +305,17 @@ void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 
 		//right turn and drive
 		rotate(0, motor_power_rotate, 90);
-		motor[motorA] = motor[motorD] = motor_power_drive;
-		nMotorEncoder[motorD] = 0;
-
-		while(nMotorEncoder[motorD] < x*180/(PI*2.75))
-		{}
-
-		motor[motorA] = motor[motorD] = 0;
-		wait1Msec(500);
-
+		drive_dist(x, motor_power_drive);
 
 
 		//left turn and drive past obstacle
 		rotate(1, motor_power_rotate, -90);
-
-		nMotorEncoder[motorD] = 0;
-		motor[motorA] = motor[motorD] = motor_power_drive;
-
-		while(nMotorEncoder[motorD] < y*180/(PI*2.75))
-		{}
-
-		motor[motorA] = motor[motorD] = 0;
-		wait1Msec(500);
-
+		drive_dist(y, motor_power_drive);
 
 
 		//left turn to return to path
 		rotate(1, motor_power_rotate, -90);
-
-		nMotorEncoder[motorD] = 0;
-		motor[motorA] = motor[motorD] = motor_power_drive;
-
-		while(nMotorEncoder[motorD] < x*180/(PI*2.75))
-		{}
-
-		motor[motorA] = motor[motorD] = 0;
-		wait1Msec(500);
-
+		drive_dist(x, motor_power_drive);
 
 
 		//right turn, faces its original path
@@ -401,9 +376,23 @@ void catch_person( int motor_power)
 }
 
 /*
+		Drives a section of the bouphostredon
 
-We track the motor encoder counts here, but we might want TO_BLUETOOTO_BLUETOOTH
-do this inside of the actual maneouver obstacle func
+		Parameters
+				int distance: Distance that the robot should drive
+				int motor_power_drive: The motor power when driving forward
+				int motor_power_rotate: The motor power when rotating. Must be low
+						to prevent innacuracies.
+
+		What it does
+				The robot drives until it reaches a certain distance, and constantly
+				checks while driving if there is an obstacle or human in front of it.
+
+				If it finds an obstacle, it will simply manouver around it, calling the
+				manouver_obstacle function. If its a human, it will call the catch_person
+				function, and end prematurely.
+
+				If it doesn't find either, it just travels the full distance.
 
 */
 
@@ -417,10 +406,15 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 
 	while(nMotorEncoder[motorA] < distance*TO_COUNTS)
 	{
-			if (SensorValue[2] <= x)
+			if (SensorValue[S2] <= x)
 			{
+				//checks for obstacles using the ultrasonic sensor
 				manouver_obstacle(motor_power_drive, motor_power_rotate);
 			}
+
+			//If the ir sensor senses a something close, but the ultrasonic doesnt
+			//Then we know it is a human, because the humans are shorter than the
+			//height of the ultrasonic sensor.
 			else if (SensorValue[S1] <= x && SensorValue[S2] >= x)
 			{
 					catch_person(motor_power_drive);
@@ -434,6 +428,34 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 	return 0;
 }
 
+/*
+		Basic drive distance function. Drives a certain distance.
+
+		Parameters
+				int distance: Distance that the robot should drive
+				int motor_power: The motor power when driving forward
+
+		What it does
+				This is similar to the drive_path function, but is for the
+				functions that do not need to check for people / checking for
+				people or obstacles could bring in sensing errors.
+
+				Using the motor encoder of motor D because the manouver obstacle
+				function needs to call this, and it will mess with tracking the
+				path if we use motor A.
+*/
+void drive_dist (int distance, int motor_power)
+{
+	nMotorEncoder[motorD] = 0;
+	motor[motorA] = motor[motorD] = motor_power;
+
+	while (nMotorEncoder[motorD] < distance * 180 / (PI * 2.80))
+	{}
+
+	motor[motorA] = motor[motorD] = 0;
+	wait1Msec(500);
+	return;
+}
 
 
 
