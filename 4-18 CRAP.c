@@ -40,15 +40,26 @@ void Input (TFileHandle & fin, char *Name, int *Location, int *TimeLastSeen)
 
 void calculate_order(int *last_time_seen, int *order)
 {
+	int temp = 0;
+	int temp2 = 0;
+	int times_copy[4];
+	for (int i = 0; i < 4; ++i)
+	{
 
- 	int temp = 0;
- 	for (int i = 0; i < 3; i++) {
+		times_copy[i] = last_time_seen[i];
+	}
+
+
+	for (int i = 0; i < 3; i++) {
         for (int j = i + 1; j < 4; j++) {
-            if (last_time_seen[i] < last_time_seen[j]) {
+            if (times_copy[i] < times_copy[j]) {
 
-                temp = order[j];
+                temp = times_copy[j];
+                times_copy[j] = times_copy[i];
+                times_copy[i] = temp;
+                temp2 = order[j];
                 order[j] = order[i];
-                order[i] = temp;
+                order[i] = temp2;
             }
         }
     }
@@ -143,20 +154,21 @@ void manouver_obstacle(int motor_power)
 void catch_person( int motor_power)
 {
 	nMotorEncoder[motorB] = 0;
-	motor[motorB]= motor_power;
-	while(nMotorEncoder[motorB] < 90)
+	motor[motorB]= -5;
+	while(nMotorEncoder[motorB] > -105)
 	{}
-
+	motor[motorB]= 0;
+	wait1Msec(1000);
 
 	nMotorEncoder[motorA] = 0;
 	int const distance = 50;
-	int const distance_counts = distance * 180 / (2.75 * PI)
+	int const distance_counts = distance * 180 / (2.75 * PI);
 	motor[motorA] = motor[motorD] = motor_power;
 	while(nMotorEncoder[motorA] < distance_counts)
 	{}
 
-	motor[motorB]= -motor_power;
-	while(nMotorEncoder[motorB] > 0)
+		motor[motorB]= 7;
+	while(nMotorEncoder[motorB] < 15)
 	{}
 
 	return;
@@ -362,7 +374,7 @@ task main()
 
 
 	Input(fin, people, quadrant, times);
-	//void calculate_order(times, order);
+	calculate_order(times, order);
 
 
 	// open
