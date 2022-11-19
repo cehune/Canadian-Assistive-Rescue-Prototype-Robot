@@ -243,7 +243,7 @@ void configure_all_sensors()
 void rotate(bool dir, int motor_power, int angle)
 {
 	//current gyro value
-	int  current_dir = abs(SensorValue(S4));
+	int  current_dir = (SensorValue(S4));
 	motor[motorA]=(dir*1+!dir*-1)*motor_power;
 	motor[motorD]=(!dir*1+dir*-1)*motor_power;
 
@@ -715,6 +715,9 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	motor[motorA] = motor[motorD] = motor_power_drive;
 	while(SensorValue[S4] != 1)
 	{}
+	motor[motorA] = motor[motorD] = 0;
+	wait1Msec(500);
+
 
 	if (quadrant == 1 || quadrant == 3)
 	{
@@ -817,7 +820,7 @@ task main()
 	const int Patient_Size = 2.75; // coke can radius*/
 	// const int Obsticle_Size = ; // party cup radius
 	const int MOTOR_POWER_DRIVE = 50;
-	const int MOTOR_POWER_ROTATE = 15;
+	const int MOTOR_POWER_ROTATE = 10;
 	const int BOUPHOSTREDON_LENGTH = 100;
 	const int BOUPHOSTREDON_WIDTH = 20;
 
@@ -868,7 +871,7 @@ task main()
 		int saved_person = 0;
 		float time = 0;
 
-		exit_centre(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, quadrant);
+		exit_centre(20, MOTOR_POWER_ROTATE, quadrant);
 
 	 	saved_person = bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
 	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, quadrant);
