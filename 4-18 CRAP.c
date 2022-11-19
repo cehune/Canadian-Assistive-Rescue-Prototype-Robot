@@ -40,18 +40,25 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 	should call this everytime it saves someone, feeding in that persons index
 	in the names and pick_up_time arrays
 */
-void Output (TFileHandle & fout, char name, float time_taken )
+void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 {
-
-	string exposure_sentence = " was exposed for ";
-	string minutes_word = "minutes";
+	if (found_person == 1)
+	{
+		string exposure_sentence = " was exposed for ";
+		string minutes_word = "minutes";
 
 		writeCharPC(fout, name);
 		writeTextPC(fout, exposure_sentence);
 		writeFloatPC(fout, time_taken);
 		writeTextPC(fout, minutes_word);
 		writeEndlPC(fout);
-
+	}
+	else
+	{
+			string couldnt_find_person = "could not find ";
+			writeCharPC(fout, name);
+			writeEndlPC(fout);
+	}
 		return;
 }
 
@@ -86,9 +93,9 @@ void calculate_order(int *last_time_seen, int *order)
 	return;
 }
 
-void calculate_exposure (int time_to_save, int *times_last_seen, int *updated_times, int patient_num)
+void calculate_exposure (int time_to_save, int time_last_seen, int *updated_times, int patient_num)
 {
-	updated_times[patient_num] = times_last_seen[patient_num] + time_to_save;
+	updated_times[patient_num] = time_last_seen + time_to_save;
 }
 
 void configure_all_sensors()
@@ -307,7 +314,7 @@ more to get to the true origin.
 make sure to adjust rotation speed.
 
 */
-void return_to_beginning (int motor_power, int quadrant)
+void return_to_beginning (int motor_power_drive, int motor_power_rotate, int quadrant)
 {
 
 		int x = 50;
@@ -344,16 +351,16 @@ void return_to_beginning (int motor_power, int quadrant)
 		}
 
 		nMotorEncoder[motorA] = 0;
-		motor[motorA] = motor[motorD] = motor_power;
+		motor[motorA] = motor[motorD] = motor_power_drive;
 
 		while(SensorValue[S3] != border)
 		{}
 
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(1000);
-		rotate(rotation_dir, 15, rotation_angle);
+		rotate(rotation_dir, motor_power_rotate, rotation_angle);
 		wait1Msec(1000);
-		motor[motorA] = motor[motorD] = motor_power;
+		motor[motorA] = motor[motorD] = motor_power_drive;
 
 		/*
 				The int corresponds to the colour black, which is how we're marking the center;
@@ -364,7 +371,7 @@ void return_to_beginning (int motor_power, int quadrant)
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(1000);
 		nMotorEncoder[motorA] = 0;
-		motor[motorA] = motor[motorD] = motor_power;
+		motor[motorA] = motor[motorD] = motor_power_drive;
 
 		while(nMotorEncoder[motorA] < (x * 180 / (PI * 2.80)))
 		{}
@@ -372,8 +379,8 @@ void return_to_beginning (int motor_power, int quadrant)
 
 		if (quadrant == 1)
 		{
-					motor[motorA] = -motor_power;
-					motor[motorD] = motor_power;
+					motor[motorA] = -motor_power_rotate;
+					motor[motorD] = motor_power_rotate;
 
 					while(SensorValue[S4] < 360)
 					{}
@@ -382,8 +389,8 @@ void return_to_beginning (int motor_power, int quadrant)
 		}
 		else if (quadrant = 4)
 		{
-					motor[motorA] = -motor_power;
-					motor[motorD] = motor_power;
+					motor[motorA] = -motor_power_rotate;
+					motor[motorD] = motor_power_rotate;
 
 					while(SensorValue[S4] < 0)
 					{}
@@ -391,8 +398,8 @@ void return_to_beginning (int motor_power, int quadrant)
 
 		else
 		{
-					motor[motorA] = motor_power;
-					motor[motorD] = -motor_power;
+					motor[motorA] = motor_power_rotate;
+					motor[motorD] = -motor_power_rotate;
 
 					while(SensorValue[S4] > 0)
 					{}
@@ -401,31 +408,31 @@ void return_to_beginning (int motor_power, int quadrant)
 		return;
 }
 
-void exit_centre(int motor_power, int quadrant)
+void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 {
 
 	if (quadrant == 3 || quadrant == 4)
 	{
-				rotate(0, 15, 180);
+				rotate(0, motor_power_rotate, 180);
 	}
 
-	motor[motorA] = motor[motorD] = motor_power;
+	motor[motorA] = motor[motorD] = motor_power_drive;
 	while(SensorValue[S4] != 1)
 	{}
 
 	if (quadrant == 1 || quadrant == 3)
 	{
-			rotate(0, 15, 90);
+			rotate(0, motor_power_rotate, 90);
 	}
 	else if (quadrant == 2 || quadrant == 4)
 	{
-			rotate(1, 15, -90);
+			rotate(1, motor_power_rotate, -90);
 	}
 	motor[motorA] = motor[motorD] = 0;
 	nMotorEncoder[motorA] = 0;
 	wait1Msec(500);
 
-	motor[motorA] = motor[motorD] = motor_power;
+	motor[motorA] = motor[motorD] = motor_power_drive;
 	while(nMotorEncoder[motorA] < (10 * 180 / (2.80 * PI)))
 	{}
 	motor[motorA] = motor[motorD] = 0;
@@ -436,7 +443,7 @@ void exit_centre(int motor_power, int quadrant)
 }
 
 
-void bouphostredon(int motor_power, int length, int width, int quadrant)
+int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int width, int quadrant)
 {
 		int found_person = 0;
 
@@ -454,28 +461,29 @@ void bouphostredon(int motor_power, int length, int width, int quadrant)
 				if (count_13 % 2 == 1)
 				{
 
-							found_person = drive_path(length, motor_power);
-							if (found_person == 1) return;
-							rotate(1, motor_power, 90);
+							found_person = drive_path(length, motor_power_drive);
+							if (found_person == 1) return 1;
+							rotate(1, motor_power_rotate, 90);
 
-							found_person = drive_path(width, motor_power);
-							if (found_person == 1) return;
-							rotate(1, motor_power, 90);
+							found_person = drive_path(width, motor_power_drive);
+							if (found_person == 1) return 1;
+							rotate(1, motor_power_rotate, 90);
 
 				}
 				else
 				{
-							found_person = drive_path(length, motor_power);
-							if (found_person == 1) return;
-							rotate(0, motor_power, 90);
+							found_person = drive_path(length, motor_power_drive);
+							if (found_person == 1) return 1;
+							rotate(0, motor_power_rotate, 90);
 
-							found_person = drive_path(width, motor_power);
-							if (found_person == 1) return;
-							rotate(0, motor_power, 90);
+							found_person = drive_path(width, motor_power_drive);
+							if (found_person == 1) return 1;
+							rotate(0, motor_power_rotate, 90);
 				}
 				++count_13;
 				++count_24;
 		}
+		return 0;
 }
 
 
@@ -488,12 +496,17 @@ task main()
 	const int Robot_Width = 18;
 	const int Patient_Size = 2.75; // coke can radius
 	// const int Obsticle_Size = ; // party cup radius
+	const int MOTOR_POWER_DRIVE = 50;
+	const int MOTOR_POWER_ROTATE = 15;
 
+	const int BOUPHOSTREDON_LENGTH = 100;
+	const int BOUPHOSTREDON_WIDTH = 20;
 
 	char people[4] = {'A', 'B', 'C', 'D'};
 	int location[4] = {0, 0, 0, 0};
 	int times [4] = {0,0,0,0};
 	int order[4] = {1, 2, 3, 4};
+	int updated_times [4] = {0,0,0,0};
 
 	configure_all_sensors();
 
@@ -525,7 +538,23 @@ task main()
 	{
 		int quadrant = location[order[count]];
 		int name = people[order[count]]
+		int time_last_seen = times[order[count]];
+		time1[T1] = 0;
+		int saved_person = 0;
+		int time = 0;
 
+		exit_centre(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, quadrant);
+
+	 	saved_person = bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
+	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, quadrant);
+
+	 	rotate_to_begin(quadrant, MOTOR_POWER_ROTATE);
+	 	return_to_beginning (MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, quadrant);
+
+    time = time1[T1];
+    time /= 1000;
+
+    calculate_exposure (time, time_last_seen, updated_times, order[count]);
 	}
 
 
