@@ -27,6 +27,7 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 						minutes that the person has been lost for
 
 		What it does
+				Reads input file and puts that information into the given parallel arrays
 */
 void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 {
@@ -59,9 +60,23 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 }
 
 /*
-	At the end of each iteration in main, it will call this function
-	to output the information of a single person.
-	This includes their name and the time they were exposed for.
+			Outputs a single persons name and the time that they were exposed to the weather for.
+			This is vital for doctors reference.
+
+			Parameters
+					TFileHandle & fout: A reference to the output file
+					char name: The patients name
+					float time_taken: The total time that a person was exposed
+							to the weather for.
+					int found_person: An integer representing whether the robot actually found
+							a person or not.
+
+			What it does
+					The int found_person is set to 1 if the robot found a person during its
+					bouphostredon journey. If it finishes the bouphotredon path function
+					without finding someone, then found_person is set to 0, meaning
+					the robot could not find a person.
+
 */
 void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 {
@@ -78,10 +93,7 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 	}
 
 	/*
-			The int found_person is set to 1 if the robot found a person during its
-			bouphostredon journey. If it finishes the bouphotredon path function
-			without finding someone, then found_person is set to 0, meaning
-			the robot could not find a person.
+			Catch for if the robot does not find a person.
 
 			This part of the function should never happen. If it does, then the
 			function outputs that it could not find the person, and that they are
