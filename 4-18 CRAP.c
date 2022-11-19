@@ -722,16 +722,19 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	{}
 	motor[motorA] = motor[motorD] = 0;
 	wait1Msec(500);
+	rotate(0, motor_power_rotate, 75);
 
 
-	//if (quadrant == 1 || quadrant == 3)
-	//{
-			rotate(0, motor_power_rotate, 80);
-//	}
-	//else if (quadrant == 2 || quadrant == 4)
-//	{
-//			rotate(1, motor_power_rotate, -90);
-//	}
+	if (quadrant == 1 || quadrant == 3)
+	{
+			rotate(0, motor_power_rotate, 75);
+
+	}
+	else if (quadrant == 2 || quadrant == 4)
+	{
+
+			rotate(1, motor_power_rotate, -75);
+	}
 
 
 	motor[motorA] = motor[motorD] = 0;
@@ -739,7 +742,7 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	wait1Msec(1000);
 
 	//Drives a set distance out of the center.
-	drive_dist(20, motor_power_drive);
+	drive_dist(30, motor_power_drive);
 
 	motor[motorA] = motor[motorD] = 0;
 	wait1Msec(1000);
@@ -789,21 +792,21 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -80);
+							rotate(1, motor_power_rotate, -75);
 
 							found_person = drive_path(width, motor_power_drive,  motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -80);
+							rotate(1, motor_power_rotate, -75);
 				}
 				else
 				{
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 80);
+							rotate(0, motor_power_rotate, 75);
 
 							found_person = drive_path(width, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 80);
+							rotate(0, motor_power_rotate, 75);
 				}
 				++count_13;
 				++count_24;
@@ -823,7 +826,7 @@ task main()
 	// const int Obsticle_Size = ; // party cup radius
 	const int MOTOR_POWER_DRIVE = 30;
 	const int MOTOR_POWER_ROTATE = 10;
-	const int BOUPHOSTREDON_LENGTH = 100;
+	const int BOUPHOSTREDON_LENGTH = 50;
 	const int BOUPHOSTREDON_WIDTH = 40;
 
 	//all data arrays
