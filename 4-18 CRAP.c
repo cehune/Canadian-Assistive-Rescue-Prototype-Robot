@@ -398,7 +398,7 @@ void catch_person( int motor_power)
 
 int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 {
-	int x = 50;
+	int x = 20;
 	const int TO_COUNTS = 180/(PI*2.75);
 
 	nMotorEncoder[motorA] = 0;
@@ -511,7 +511,7 @@ void rotate_to_begin(int quadrant, int motor_power)
 			{
 					while(SensorValue[S4] < -DOWNWARD)
 					{}
-					sensorValue[S4] = DOWNWARD;
+					SensorValue[S4] = DOWNWARD;
 			}
 			else if (current_dir < DOWNWARD)
 			{
@@ -689,29 +689,21 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 
 
 /*
-		Drive until it hits the x axis then returns to the centre.
+		Exits the center.
 
-Parameters
-		int motor_power_drive: The motor power for driving forward.
-		int motor_power_rotate: The motor power for rotation
-		int quadrant: The quadrant that the person was in
+		Parameters
+				int motor_power_drive: The motor power for driving forward.
+				int motor_power_rotate: The motor power for rotation
+				int quadrant: The quadrant that the person is in
 
-Notes
-		This is called right after the rotate_to_begin function, so it is
-		already facing the x axis. The robot drives until the color sensor senses the
-		associated border colour.
+		Notes
+				If the person is in quadrant 3 or 4, the robot does a 180 degree turn first. Then it drives
+				forward, and turns again to face the quadrant the person is in.
 
-		After, it turns to face the y axis. If its in quadrant 1 or 3, it must turn counter
-		clock wise. If its in quadrant 2 or 4, then it must turn clockwise.
 
-		Then it drives until the colour sensor detects black, the center colour.
-
-		Once it does, it drives a set distance forward, because we know the size of the center.
-
-		It then rotates to look upward along the y axis, facing the original reference direction.
-
+				This function leads directly into the bouphostredon function.
 */
-*/
+
 void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 {
 
@@ -732,10 +724,13 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	{
 			rotate(1, motor_power_rotate, -90);
 	}
+
+
 	motor[motorA] = motor[motorD] = 0;
 	nMotorEncoder[motorA] = 0;
 	wait1Msec(500);
 
+	//Drives a set distance out of the center.
 	motor[motorA] = motor[motorD] = motor_power_drive;
 	while(nMotorEncoder[motorA] < (10 * 180 / (2.80 * PI)))
 	{}
@@ -747,10 +742,31 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 }
 
 
+
+/*
+		Full Bouphostredon path to traverse the quadrant
+
+		Parameters
+				int motor_power_drive: Motor power for driving forward
+				int motor_power_rotate: Motor power for rotating
+				int length: length of the bouphostredon
+				int width: width of the bouphostredon path
+				int quadrant: The quadrant the person is in
+*/
 int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int width, int quadrant)
 {
 		int found_person = 0;
 
+		/*
+				Using 2 count variables to track the amount of turns the robot will take.
+
+				We wanted the robot to just generally turn a certain direction based on
+				the value of count, and whether it was even or odd. Unfortunately,
+				if we just set it to 0 or 1 depending on the quadrant, and kept the value  of
+				count as the loop condition, then the qaudrants where count was set as 1 would
+				end one iteration early. Therefore, we created another count variable to mediate
+				this issue.
+		*/
 		int count_13 = 0;
 		int count_24 = 1;
 		if (quadrant == 1 || quadrant == 3)
@@ -836,6 +852,12 @@ task main()
 		displayString(5, "Error: Fail to open file");
 		wait1Msec(5000);
 	}
+
+	//The program will only start if you press the enter button
+	while(!getButtonPress(buttonEnter))
+	{}
+	while(getButtonPress(buttonEnter))
+	{}
 
 	for (int count = 0; count < 4; ++count)
 	{
