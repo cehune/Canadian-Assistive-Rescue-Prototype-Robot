@@ -468,13 +468,31 @@ void drive_dist (int distance, int motor_power)
 				int motor_power: The motor power when rotating
 
 		Notes
+				Because we can never tell what the direction the robot will be facing when it
+				finds a person, we used a relative gyro degree to determine the direction that
+				the robot is facing in comparison to its starting position.
 
+				We set the gyro at 0 when it is in the center directly looking down the y axis.
+
+				This means that if its facing any direction, it just needs to spin until the gyro
+				reaches 0 or any scalar multiple  of 360 if it wanted to face that same start direction.
+
+				Just by nature of the bouphostredon path, the gyro degrees should never exceed 270 or go
+				below -270, but we catch for those situations anyway, in case there are innacuracies.
+
+				If it is in quadrant 1 or 2, the x axis is below the robot, and it must spin until
+				it reaches 180 degrees, facing down. If it is in quadrant 3 or 4, it will rotate
+				until it faces upwards, the same direction as the starting reference angle.
 */
 
 void rotate_to_begin(int quadrant, int motor_power)
 {
+
+	//Tracks the current angle
 	int current_dir = SensorValue[S4];
 
+	//The x axis is below the robot, and it must face 180 or 180 +- a scalar multiple
+	//of 260.
 	if (quadrant == 1 || quadrant == 2)
 	{
 			/*Either the angle is below 170 or below */
@@ -493,6 +511,7 @@ void rotate_to_begin(int quadrant, int motor_power)
 			{
 					while(SensorValue[S4] < -DOWNWARD)
 					{}
+					sensorValue[S4] = DOWNWARD;
 			}
 			else if (current_dir < DOWNWARD)
 			{
@@ -503,6 +522,8 @@ void rotate_to_begin(int quadrant, int motor_power)
 					{}
 			}
 	}
+
+	//x axis is above the robot
 	else if (quadrant == 3 || quadrant == 4)
 	{
 			/*
@@ -525,15 +546,33 @@ void rotate_to_begin(int quadrant, int motor_power)
 					SensorValue[S4] = 0;
 			}
 	}
+	motor[motorA] = motor[motorD] = 0;
+	wait1Msec(500);
+
 	return;
 }
 
 /*
-after rotating to face the x axis, it should drive until it hits the coloured tape border,
-then rotate to face the center until it gets to the center square, marked by the black tape then drive a little
-more to get to the true origin.
+Drive until it hits the x axis then returns to the centre.
 
-make sure to adjust rotation speed.
+Parameters
+		int motor_power_drive: The motor power for driving forward.
+		int motor_power_rotate: The motor power for rotation
+		int quadrant: The quadrant that the person was in
+
+Notes
+		This is called right after the rotate_to_begin function, so it is
+		already facing the x axis. The robot drives until the color sensor senses the
+		associated border colour.
+
+		After, it turns to face the y axis. If its in quadrant 1 or 3, it must turn counter
+		clock wise. If its in quadrant 2 or 4, then it must turn clockwise.
+
+		Then it drives until the colour sensor detects black, the center colour.
+
+		Once it does, it drives a set distance forward, because we know the size of the center.
+
+		It then rotates to look upward along the y axis, facing the original reference direction.
 
 */
 void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadrant)
@@ -580,6 +619,8 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(1000);
+
+		//rotates to face the center
 		rotate(rotation_dir, motor_power_rotate, rotation_angle);
 		wait1Msec(1000);
 		motor[motorA] = motor[motorD] = motor_power_drive;
@@ -595,10 +636,15 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		nMotorEncoder[motorA] = 0;
 		motor[motorA] = motor[motorD] = motor_power_drive;
 
+		//drives a set distance forward
 		while(nMotorEncoder[motorA] < (x * 180 / (PI * 2.80)))
 		{}
 		wait1Msec(500);
 
+		/*
+				depending on the direction its facing, it needs to turn until it faces the
+				reference angle 0.
+		*/
 		if (quadrant == 1)
 		{
 					motor[motorA] = -motor_power_rotate;
@@ -608,6 +654,12 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 					{}
 
 					SensorValue[S4] = 0;
+
+					/*
+							The gyro degrees should be ~270 at this point, but it only needs to
+							turn 90 to face the reference direction. Therefore, we make it turn to
+							an angle of 360, then just reset the gyro value to 0;
+					*/
 		}
 		else if (quadrant == 4)
 		{
@@ -620,6 +672,10 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 
 		else
 		{
+					/*
+							Coming from either quadrant 2 or 3, the robot will have a gyro degree
+							of 90. Therefore, it will rotate the same direction.
+					*/
 					motor[motorA] = motor_power_rotate;
 					motor[motorD] = -motor_power_rotate;
 
@@ -630,6 +686,32 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		return;
 }
 
+
+
+/*
+		Drive until it hits the x axis then returns to the centre.
+
+Parameters
+		int motor_power_drive: The motor power for driving forward.
+		int motor_power_rotate: The motor power for rotation
+		int quadrant: The quadrant that the person was in
+
+Notes
+		This is called right after the rotate_to_begin function, so it is
+		already facing the x axis. The robot drives until the color sensor senses the
+		associated border colour.
+
+		After, it turns to face the y axis. If its in quadrant 1 or 3, it must turn counter
+		clock wise. If its in quadrant 2 or 4, then it must turn clockwise.
+
+		Then it drives until the colour sensor detects black, the center colour.
+
+		Once it does, it drives a set distance forward, because we know the size of the center.
+
+		It then rotates to look upward along the y axis, facing the original reference direction.
+
+*/
+*/
 void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 {
 
