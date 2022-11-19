@@ -11,7 +11,7 @@ void manouver_obstacle(int motor_power);
 ADJUST WHEEL SIZE ON ALL FUNCTIONS
 
 */
-void Input (TFileHandle & fin, char *Name, int *Location, int *TimeLastSeen)
+void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 {
 
 	int count = 0;
@@ -21,13 +21,13 @@ void Input (TFileHandle & fin, char *Name, int *Location, int *TimeLastSeen)
 		int current_location = 0;
 		int time = 0;
 		readCharPC(fin, current_name);
-		Name[count] = current_name;
+		name[count] = current_name;
 
 		readIntPC(fin, current_location);
-		Location[count] = current_location;
+		location[count] = current_location;
 
 		readIntPC(fin, time);
-		TimeLastSeen[count] = time;
+		time_last_seen[count] = time;
 	//	Location[Name] = Quadrant;
 		//TimeLastSeen[Name] = Time;
 		++count;
@@ -35,6 +35,26 @@ void Input (TFileHandle & fin, char *Name, int *Location, int *TimeLastSeen)
 
 	return;
 }
+
+/*
+	should call this everytime it saves someone, feeding in that persons index
+	in the names and pick_up_time arrays
+*/
+void Output (TFileHandle & fout, char *name, float *pick_up_time, int patient_num)
+{
+
+	string exposure_sentence = " was exposed for ";
+	string minutes_word = "minutes";
+	int patient = name[patient_num];
+	int time_taken = pick_up_time[patient_num];
+		writeCharPC(fout, patient);
+		writeTextPC(fout, exposure_sentence);
+		writeFloatPC(fout, time_taken);
+		writeTextPC(fout, minutes_word);
+		writeEndlPC(fout);
+
+}
+
 
 
 
@@ -66,6 +86,10 @@ void calculate_order(int *last_time_seen, int *order)
 	return;
 }
 
+void calculate_exposure (int time_to_save, int *times_last_seen, int *updated_times, int patient_num)
+{
+	updated_times[patient_num] = times_last_seen[patient_num] + time_to_save;
+}
 
 void configure_all_sensors()
 {
@@ -85,6 +109,7 @@ void configure_all_sensors()
 
 void rotate(bool dir, int motor_power, int angle) // dir=1 for ccw
 {
+
 	int  current_dir = abs(SensorValue(S4));
 	motor[motorA]=(dir*1+!dir*-1)*motor_power; //+ if dir==1
 	motor[motorD]=(!dir*1+dir*-1)*motor_power; //- if dir==1
@@ -129,10 +154,10 @@ void manouver_obstacle(int motor_power)
 		rotate(0, motor_power, 90);
 		drive_path(x, motor_power);
 
-		rotate(1, motor_power, 90);
+		rotate(1, motor_power, -90);
 		drive_path(y, motor_power);
 
-		rotate(1, motor_power, 90);
+		rotate(1, motor_power, -90);
 		drive_path(x, motor_power);
 
 		rotate(0, motor_power, 90);
@@ -208,33 +233,7 @@ int drive_path(int distance, int motor_power)
 	return 0;
 }
 
-/*
-		Only on the return path will the robot have to worry about sensing the black type
-		that marks the middle, therefore, I'm creating a seperate function to drive back to
-		the centre. Otherwise, we would have a single drive function checking the colour sensor
-		while its out and about on the bouphostredon, which is inefficient.
-*/
-void drive_return(int distance, int motor_power)
-{
-		int x = 50;
-		const int TO_COUNTS = 180/(PI*2.75);
 
-		nMotorEncoder[motorA] = 0;
-		motor[motorA] = motor[motorD] = motor_power;
-
-		while(nMotorEncoder[motorA] < distance*TO_COUNTS)
-		{
-				//The color sensor
-				if (SensorValue[3] == 1)
-				{
-					return;
-				}
-		}
-
-		motor[motorA] = motor[motorD] = 0;
-		wait1Msec(500);
-		return;
-}
 
 
 
@@ -298,6 +297,110 @@ void rotate_to_begin(int quadrant, int motor_power)
 			}
 	}
 	return;
+}
+
+/*
+after rotating to face the x axis, it should drive until it hits the coloured tape border,
+then rotate to face the center until it gets to the center square, marked by the black tape then drive a little
+more to get to the true origin.
+
+make sure to adjust rotation speed.
+
+*/
+void return_to_beginning (int motor_power, int quadrant)
+{
+
+		int x = 50;
+		const int TO_COUNTS = 180/(PI*2.75);
+		int border = 0;
+		int rotation_dir = 0;
+		int rotation_angle = 90;
+		/* for which direction it turns to face the center once
+		it reaches the x axis. If its 1 or 3, then it should turn right. It should turn left
+		if it is on quadrant 2 or 4. rotation should be 1 for counter clockwise and 0 for clockwise.
+
+		*/
+
+		if (quadrant == 1)
+		{
+				border = 3; // int for the colour green
+
+		}
+		else if (quadrant == 2)
+		{
+				border = 5; //int for the colour red
+				rotation_dir = 1;
+				rotation_angle = -90;
+		}
+		else if (quadrant == 3)
+		{
+				border = 4; // int for the colour yellow
+		}
+		else
+		{
+				border = 2; // int for the colour blue
+				rotation_dir = 1;
+				rotation_angle = -90;
+		}
+
+		nMotorEncoder[motorA] = 0;
+		motor[motorA] = motor[motorD] = motor_power;
+
+		while(SensorValue[S3] != border)
+		{}
+
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(1000);
+		rotate(rotation_dir, 15, rotation_angle);
+		wait1Msec(1000);
+		motor[motorA] = motor[motorD] = motor_power;
+
+		/*
+				The int corresponds to the colour black, which is how we're marking the center;
+		*/
+		while(SensorValue[S3] != 1)
+		{}
+
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(1000);
+		nMotorEncoder[motorA] = 0;
+		motor[motorA] = motor[motorD] = motor_power;
+
+		while(nMotorEncoder[motorA] < (x * 180 / (PI * 2.80)))
+		{}
+		wait1Msec(500);
+
+		if (quadrant == 1)
+		{
+					motor[motorA] = -motor_power;
+					motor[motorD] = motor_power;
+
+					while(SensorValue[S4] < 360)
+					{}
+
+					SensorValue[S4] = 0;
+		}
+		else if (quadrant = 4)
+		{
+					motor[motorA] = -motor_power;
+					motor[motorD] = motor_power;
+
+					while(SensorValue[S4] < 0)
+					{}
+		}
+
+		else
+		{
+					motor[motorA] = motor_power;
+					motor[motorD] = -motor_power;
+
+					while(SensorValue[S4] > 0)
+					{}
+		}
+
+		return;
+
+
 }
 
 void bouphostredon(int motor_power, int length, int width, int quadrant)
