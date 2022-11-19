@@ -40,19 +40,19 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 	should call this everytime it saves someone, feeding in that persons index
 	in the names and pick_up_time arrays
 */
-void Output (TFileHandle & fout, char *name, float *pick_up_time, int patient_num)
+void Output (TFileHandle & fout, char name, float time_taken )
 {
 
 	string exposure_sentence = " was exposed for ";
 	string minutes_word = "minutes";
-	int patient = name[patient_num];
-	int time_taken = pick_up_time[patient_num];
-		writeCharPC(fout, patient);
+
+		writeCharPC(fout, name);
 		writeTextPC(fout, exposure_sentence);
 		writeFloatPC(fout, time_taken);
 		writeTextPC(fout, minutes_word);
 		writeEndlPC(fout);
 
+		return;
 }
 
 
@@ -399,9 +399,42 @@ void return_to_beginning (int motor_power, int quadrant)
 		}
 
 		return;
-
-
 }
+
+void exit_centre(int motor_power, int quadrant)
+{
+
+	if (quadrant == 3 || quadrant == 4)
+	{
+				rotate(0, 15, 180);
+	}
+
+	motor[motorA] = motor[motorD] = motor_power;
+	while(SensorValue[S4] != 1)
+	{}
+
+	if (quadrant == 1 || quadrant == 3)
+	{
+			rotate(0, 15, 90);
+	}
+	else if (quadrant == 2 || quadrant == 4)
+	{
+			rotate(1, 15, -90);
+	}
+	motor[motorA] = motor[motorD] = 0;
+	nMotorEncoder[motorA] = 0;
+	wait1Msec(500);
+
+	motor[motorA] = motor[motorD] = motor_power;
+	while(nMotorEncoder[motorA] < (10 * 180 / (2.80 * PI)))
+	{}
+	motor[motorA] = motor[motorD] = 0;
+	wait1Msec(500);
+
+//leads into the bouphostredon function
+	return;
+}
+
 
 void bouphostredon(int motor_power, int length, int width, int quadrant)
 {
@@ -458,7 +491,7 @@ task main()
 
 
 	char people[4] = {'A', 'B', 'C', 'D'};
-	int quadrant [4] = {0, 0, 0, 0};
+	int location[4] = {0, 0, 0, 0};
 	int times [4] = {0,0,0,0};
 	int order[4] = {1, 2, 3, 4};
 
@@ -476,20 +509,11 @@ task main()
 	}
 
 
-	Input(fin, people, quadrant, times);
+	Input(fin, people, location, times);
 	calculate_order(times, order);
-
-
 	// open
 	TFileHandle fout;
 	bool WriteCheck = WriteTextPC(fout, "Report.txt");
-
-
-	// check if the file is opened correctly
-
-
-
-	// check if the file is opened correctly
 
 	if (!WriteCheck)
 	{
@@ -497,9 +521,13 @@ task main()
 		wait1Msec(5000);
 	}
 
+	for (int count = 0; count < 4; ++count)
+	{
+		int quadrant = location[order[count]];
+		int name = people[order[count]]
 
-	//writeFloatPC(fout, pickuptime);
-	//writeEndlPC(fout);
+	}
+
 
 
 	closeFilePC(fout);
