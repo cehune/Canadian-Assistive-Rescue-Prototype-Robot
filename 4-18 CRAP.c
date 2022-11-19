@@ -27,7 +27,7 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				int *time_last_seen: Array that will store the amount of time in
 						minutes that the person has been lost for
 
-		What it does
+		Note
 				Reads input file and puts that information into the given parallel arrays
 */
 void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
@@ -72,7 +72,7 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 					int found_person: An integer representing whether the robot actually found
 							a person or not.
 
-			What it does
+			Notes
 					The int found_person is set to 1 if the robot found a person during its
 					bouphostredon journey. If it finishes the bouphotredon path function
 					without finding someone, then found_person is set to 0, meaning
@@ -122,7 +122,7 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 						of largest time_last_seen to smallest.
 
 
-		What it does
+		Notes
 				We initialize the order array as {0, 1, 2, 3}, representing the index of each values.
 				The function makes a copy of the values of the last_time_seen array, and sorts that
 				copy as to not edit the original. This copy is called times_copy.
@@ -187,7 +187,7 @@ void calculate_order(int *last_time_seen, int *order)
 						to contain what it calculates as the total exposure time.
 				int patient_num: The index corresponding to the persons name and other information.
 
-		What it does
+		Notes
 				The function adds the time_last_seen and time_to_save, and adds these values to
 				the updated times array at the index of patient_num
 */
@@ -229,7 +229,7 @@ void configure_all_sensors()
 					the gyro counts would be decreasing. If it is turning clockwise
 					then angle should be given a positive value.
 
-	What it does.
+	Notes
 			We are not allowed to reset the gyro whenever it rotates, as we
 			need to keep a relative gyro count to return to the center. This is
 			further explained in the rotate_to_begin function.
@@ -278,7 +278,7 @@ void rotate(bool dir, int motor_power, int angle)
 			int motor_power_rotate: The motor power for when the robot is rotating.
 					It should be lower to prevent innacuracies.
 
-		What it does.
+		Notes
 			This function is called when the sensors in drive_path sense an obstacle.
 			The robot makes a right turn and drives a little, perpindicular to its original
 			path. Then it makes a left turn and drives past the obstacle, parallel
@@ -337,7 +337,7 @@ void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 		Parameters
 				int motor_power: The motor power when it is driving forward.
 
-		What it does.
+		Notes
 			This function is called when the sensors sense a person in front
 			of it.
 
@@ -384,7 +384,7 @@ void catch_person( int motor_power)
 				int motor_power_rotate: The motor power when rotating. Must be low
 						to prevent innacuracies.
 
-		What it does
+		Notes
 				The robot drives until it reaches a certain distance, and constantly
 				checks while driving if there is an obstacle or human in front of it.
 
@@ -435,7 +435,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 				int distance: Distance that the robot should drive
 				int motor_power: The motor power when driving forward
 
-		What it does
+		Notes
 				This is similar to the drive_path function, but is for the
 				functions that do not need to check for people / checking for
 				people or obstacles could bring in sensing errors.
@@ -461,10 +461,16 @@ void drive_dist (int distance, int motor_power)
 
 
 /*
-	every turn should increment, based on how it moves. It needs to change the direction based on what the gyro value is.
+		No matter which direction the robot is facing, this function rotates it to face the x axis.
+
+		Parameters
+				int quadrant: The persons quadrant, whichever one the robot is currently in
+				int motor_power: The motor power when rotating
+
+		Notes
+
 */
 
-//Done
 void rotate_to_begin(int quadrant, int motor_power)
 {
 	int current_dir = SensorValue[S4];
