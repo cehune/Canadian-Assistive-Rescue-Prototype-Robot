@@ -423,7 +423,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 				manouver_obstacle(motor_power_drive, motor_power_rotate);
 				motor[motorA] = motor[motorD] = motor_power_drive;
 			}
-
+/*
 			//If the ir sensor senses a something close, but the ultrasonic doesnt
 			//Then we know it is a human, because the humans are shorter than the
 			//height of the ultrasonic sensor.
@@ -431,7 +431,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 			{
 					catch_person(motor_power_drive);
 					return 1;
-			}
+			}*/
 
 	}
 
@@ -798,7 +798,7 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 		}
 
 
-		while( count_13 < 2 && count_24 < 2)
+		while( count_13 < 3 && count_24 < 3)
 		{
 				if (count_13 % 2 == 1)
 				{
@@ -828,8 +828,11 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				++count_13;
 				++count_24;
 		}
+		found_person = drive_path(length, motor_power_drive, motor_power_rotate);
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(1000);
 		return 0;
-		wait1Msec(2000);
+
 }
 
 
@@ -895,13 +898,12 @@ task main()
 		int saved_person = 0;
 		float time = 0;*/
 
-		//exit_centre(30, MOTOR_POWER_ROTATE, count);
-		drive_dist(10, MOTOR_POWER_DRIVE);
+		exit_centre(30, MOTOR_POWER_ROTATE, count);
 	 	bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
 	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, count);
 
-	 	//rotate_to_begin(count, MOTOR_POWER_ROTATE);
-	 	//return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
+	 	rotate_to_begin(count, MOTOR_POWER_ROTATE);
+	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
 
 
 
