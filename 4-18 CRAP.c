@@ -327,8 +327,8 @@ void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 
 		//right turn, faces its original path
 		rotate(0, motor_power_rotate, 90);
-
-		wait1Msec(500);
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(2000);
 
 		//reassigns the motor encoder by subtracting the counts
 		//while traveling away and toward its original path
@@ -359,6 +359,9 @@ void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 void catch_person( int motor_power)
 {
 	//opens gate.
+	motor[motorA] = motor[motorD] = 0;
+	wait1Msec(1000);
+
 	nMotorEncoder[motorB] = 0;
 	motor[motorB]= -5;
 	while(nMotorEncoder[motorB] > -105)
@@ -406,7 +409,7 @@ void catch_person( int motor_power)
 
 int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 {
-
+	int x = 10;
 	const int TO_COUNTS = 180/(PI*2.75);
 
 	nMotorEncoder[motorA] = 0;
@@ -414,10 +417,11 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 
 	while(nMotorEncoder[motorA] < distance*TO_COUNTS)
 	{
-		/*	if (SensorValue[S2] <= x)
+			if (SensorValue[S2] <= x)
 			{
 				//checks for obstacles using the ultrasonic sensor
 				manouver_obstacle(motor_power_drive, motor_power_rotate);
+				motor[motorA] = motor[motorD] = motor_power_drive;
 			}
 
 			//If the ir sensor senses a something close, but the ultrasonic doesnt
@@ -427,7 +431,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 			{
 					catch_person(motor_power_drive);
 					return 1;
-			}*/
+			}
 
 	}
 
@@ -891,13 +895,16 @@ task main()
 		int saved_person = 0;
 		float time = 0;*/
 
-		exit_centre(30, MOTOR_POWER_ROTATE, count);
-
+		//exit_centre(30, MOTOR_POWER_ROTATE, count);
+		drive_dist(10, MOTOR_POWER_DRIVE);
 	 	bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
 	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, count);
 
-	 	rotate_to_begin(count, MOTOR_POWER_ROTATE);
-	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
+	 	//rotate_to_begin(count, MOTOR_POWER_ROTATE);
+	 	//return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
+
+
+
 
 
 
