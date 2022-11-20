@@ -304,8 +304,8 @@ void rotate(bool dir, int motor_power, int angle)
 */
 void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 {
-		int x = 50;
-		int y = 100;
+		int x = 5;
+		int y = 10;
 
 		wait1Msec(500);
 		int current_counts = nMotorEncoder[motorA];
@@ -592,7 +592,7 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 
 		int x = 50;
 
-		int border = 0;
+		int border = 3;
 		int rotation_dir = 0;
 		int rotation_angle = 90;
 		/* for which direction it turns to face the center once
@@ -626,11 +626,11 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		nMotorEncoder[motorA] = 0;
 		motor[motorA] = motor[motorD] = motor_power_drive;
 
-		while(SensorValue[S3] != border)
+		while(SensorValue[S3] != 3)
 		{}
 
 		motor[motorA] = motor[motorD] = 0;
-		wait1Msec(1000);
+		wait1Msec(3000);
 
 		//rotates to face the center
 		rotate(rotation_dir, motor_power_rotate, rotation_angle);
@@ -794,7 +794,7 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 		}
 
 
-		while( count_13 < 4 && count_24 < 4)
+		while( count_13 < 2 && count_24 < 2)
 		{
 				if (count_13 % 2 == 1)
 				{
@@ -886,23 +886,20 @@ task main()
 		/*int index = order[count];
 		int quadrant = location[index];
 		int name = people[index];
-		int time_last_seen = times[index];*/
-		/*time1[T1] = 0;
+		int time_last_seen = times[index];
+		time1[T1] = 0;
 		int saved_person = 0;
-		float time = 0;
+		float time = 0;*/
 
 		exit_centre(30, MOTOR_POWER_ROTATE, count);
 
-	 	saved_person = bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
+	 	bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
 	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, count);
 
 	 	rotate_to_begin(count, MOTOR_POWER_ROTATE);
-	 	//return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
+	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
 
-    time = time1[T1];
-    time /= 1000; */
 
-    catch_person(MOTOR_POWER_DRIVE);
 
     //calculate_exposure(time, time_last_seen, updated_times, order[count]);
    // Output(fout, name, updated_times[order[count]], saved_person);
