@@ -368,12 +368,13 @@ void catch_person( int motor_power)
 
 	//drives forward until the person is inside of the safety bed.
 	nMotorEncoder[motorA] = 0;
-	int const distance = 50;
+	int const distance = 30;
 	int const distance_counts = distance * 180 / (2.75 * PI);
 	motor[motorA] = motor[motorD] = motor_power;
 	while(nMotorEncoder[motorA] < distance_counts)
 	{}
-
+		motor[motorA] = motor[motorD] = 0;
+	wait1Msec(500);
 	//gate closes.
 	motor[motorB]= 7;
 	while(nMotorEncoder[motorB] < 15)
@@ -793,7 +794,7 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 		}
 
 
-		while( count_13 < 2 && count_24 < 2)
+		while( count_13 < 4 && count_24 < 4)
 		{
 				if (count_13 % 2 == 1)
 				{
@@ -814,11 +815,11 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 							wait1Msec(1000);
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 75);
+							rotate(0, motor_power_rotate, 90);
 
 							found_person = drive_path(width, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 75);
+							rotate(0, motor_power_rotate, 90);
 				}
 				++count_13;
 				++count_24;
@@ -886,7 +887,7 @@ task main()
 		int quadrant = location[index];
 		int name = people[index];
 		int time_last_seen = times[index];*/
-		time1[T1] = 0;
+		/*time1[T1] = 0;
 		int saved_person = 0;
 		float time = 0;
 
@@ -899,7 +900,9 @@ task main()
 	 	//return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
 
     time = time1[T1];
-    time /= 1000;
+    time /= 1000; */
+
+    catch_person(MOTOR_POWER_DRIVE);
 
     //calculate_exposure(time, time_last_seen, updated_times, order[count]);
    // Output(fout, name, updated_times[order[count]], saved_person);
