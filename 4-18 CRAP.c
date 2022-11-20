@@ -754,11 +754,7 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 
 	wait1Msec(1000);
 
-	//Drives a set distance out of the center.
-	drive_dist(30, motor_power_drive);
 
-	motor[motorA] = motor[motorD] = 0;
-	wait1Msec(1000);
 //leads into the bouphostredon function
 	return;
 }
@@ -804,11 +800,15 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				{
 
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
+							motor[motorA] = motor[motorD] = 0;
+							wait1Msec(1000);
 							if (found_person == 1) return 1;
 							rotate(1, motor_power_rotate, -90);
-
+							motor[motorA] = motor[motorD] = 0;
+							wait1Msec(1000);
 							found_person = drive_path(width, motor_power_drive,  motor_power_rotate);
-
+							motor[motorA] = motor[motorD] = 0;
+							wait1Msec(1000);
 							if (found_person == 1) return 1;
 							rotate(1, motor_power_rotate, 0);
 							wait1Msec(1000);
@@ -818,10 +818,16 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				{
 							wait1Msec(1000);
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
+							motor[motorA] = motor[motorD] = 0;
+							wait1Msec(1000);
 							if (found_person == 1) return 1;
 							rotate(0, motor_power_rotate, 90);
+							motor[motorA] = motor[motorD] = 0;
+							wait1Msec(1000);
 
 							found_person = drive_path(width, motor_power_drive, motor_power_rotate);
+							motor[motorA] = motor[motorD] = 0;
+							wait1Msec(1000);
 							if (found_person == 1) return 1;
 							rotate(0, motor_power_rotate, 90);
 				}
@@ -847,8 +853,8 @@ task main()
 	// const int Obsticle_Size = ; // party cup radius
 	const int MOTOR_POWER_DRIVE = 30;
 	const int MOTOR_POWER_ROTATE = 5;
-	const int BOUPHOSTREDON_LENGTH = 40;
-	const int BOUPHOSTREDON_WIDTH = 30;
+	const int BOUPHOSTREDON_LENGTH = 80;
+	const int BOUPHOSTREDON_WIDTH = 20;
 
 	//all data arrays
 	char people[4] = {'A', 'B', 'C', 'D'};
