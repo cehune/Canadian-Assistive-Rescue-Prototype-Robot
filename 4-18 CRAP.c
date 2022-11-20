@@ -1,8 +1,8 @@
 #include "PC_FileIO.c"
 
-void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen);
+/*void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen);
 void Output (TFileHandle & fout, char name, float time_taken, int found_person);
-void calculate_exposure (float time_to_save, int time_last_seen, float *updated_times, int patient_num);
+void calculate_exposure (float time_to_save, int time_last_seen, float *updated_times, int patient_num);*/
 void configure_all_sensors();
 void rotate(bool dir, int motor_power, int angle);
 void manouver_obstacle(int motor_power_drive, int motor_power_rotate);
@@ -30,6 +30,8 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 		Note
 				Reads input file and puts that information into the given parallel arrays
 */
+
+/*
 void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 {
 
@@ -41,7 +43,7 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 				Then we set the name, location, and time_last_seen
 				arrays at the index of count as the variables we just
 				created.
-		*/
+		*//*
 		char current_name = ' ';
 		int current_location = 0;
 		int time = 0;
@@ -79,6 +81,8 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 					the robot could not find a person.
 
 */
+
+/*
 void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 {
 	if (found_person == 1)
@@ -99,7 +103,7 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 			This part of the function should never happen. If it does, then the
 			function outputs that it could not find the person, and that they are
 			still lost out in the wilderness.
-	*/
+	*/  /*
 	else
 	{
 			string couldnt_find_person = "could not find ";
@@ -140,7 +144,7 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 				value. The value at the second index, 1, represents the index of the second largest value
 				in last_time_seen, 7.
 
-*/
+*/  /*
 void calculate_order(int *last_time_seen, int *order)
 {
 	int temp = 0;
@@ -164,7 +168,7 @@ void calculate_order(int *last_time_seen, int *order)
                 /*
                 		Using temporary variables to temporarily store the value of an index
                 		while we switch it with the position of another.
-                */
+                */  /*
                 temp2 = order[j];
                 order[j] = order[i];
                 order[i] = temp2;
@@ -190,13 +194,13 @@ void calculate_order(int *last_time_seen, int *order)
 		Notes
 				The function adds the time_last_seen and time_to_save, and adds these values to
 				the updated times array at the index of patient_num
-*/
+*/  /*
 void calculate_exposure (float time_to_save, int time_last_seen, float *updated_times, int patient_num)
 {
 	updated_times[patient_num] = time_last_seen + time_to_save;
 	return;
 }
-
+*/
 
 //Config
 void configure_all_sensors()
@@ -250,8 +254,8 @@ void rotate(bool dir, int motor_power, int angle)
 	//of current_dir and the angle.
 	if (dir == 0)
 	{
-				motor[motorA]=(dir*1+!dir*-1)*motor_power;
-			motor[motorD]=(!dir*1+dir*-1)*motor_power;
+				motor[motorA]=-motor_power;
+			motor[motorD]=motor_power;
 			while (SensorValue[S4] < next_angle)
 			{	}
 	}
@@ -260,8 +264,8 @@ void rotate(bool dir, int motor_power, int angle)
 	else
 	{
 
-				motor[motorA]=(dir*1+!dir*-1)*motor_power;
-	motor[motorD]=(!dir*1+dir*-1)*motor_power;
+				motor[motorA]=motor_power;
+	motor[motorD]=-motor_power;
 			while ((SensorValue[S4]) > next_angle)
 			{	}
 	}
@@ -401,7 +405,7 @@ void catch_person( int motor_power)
 
 int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 {
-	int x = 20;
+
 	const int TO_COUNTS = 180/(PI*2.75);
 
 	nMotorEncoder[motorA] = 0;
@@ -490,22 +494,22 @@ void drive_dist (int distance, int motor_power)
 
 void rotate_to_begin(int quadrant, int motor_power)
 {
-
+	wait1Msec(2000);
 	//Tracks the current angle
 	int current_dir = SensorValue[S4];
-
-	//The x axis is below the robot, and it must face 180 or 180 +- a scalar multiple
-	//of 260.
-	if (quadrant == 1 || quadrant == 2)
-	{
-			/*Either the angle is below 170 or below */
-			const int DOWNWARD = 180;
+	const int DOWNWARD = 170;
 
 			if (current_dir > DOWNWARD)
 			{
 					//get lowest angle below 180 that faces the same direction.
 					SensorValue[S4] = current_dir - 360;
 			}
+	//The x axis is below the robot, and it must face 180 or 180 +- a scalar multiple
+	//of 260.
+	if (quadrant == 1 || quadrant == 2)
+	{
+			/*Either the angle is below 170 or below */
+
 
 			motor[motorA] = -motor_power;
 			motor[motorD] = motor_power;
@@ -514,6 +518,7 @@ void rotate_to_begin(int quadrant, int motor_power)
 			{
 					while(SensorValue[S4] < -DOWNWARD)
 					{}
+				motor[motorA] = motor[motorD] = 0;
 					SensorValue[S4] = DOWNWARD;
 			}
 			else if (current_dir < DOWNWARD)
@@ -523,6 +528,7 @@ void rotate_to_begin(int quadrant, int motor_power)
 					directly down, which is any scalar multiple of 180*/
 					while(SensorValue[S4] < DOWNWARD)
 					{}
+				motor[motorA] = motor[motorD] = 0;
 			}
 	}
 
@@ -541,15 +547,17 @@ void rotate_to_begin(int quadrant, int motor_power)
 			{
 					while(SensorValue[S4] < 0)
 					{}
+				motor[motorA] = motor[motorD] = 0;
 			}
 			else if (current_dir < 360)
 			{
 					while(SensorValue[S4] < 360)
 					{}
+				motor[motorA] = motor[motorD] = 0;
 					SensorValue[S4] = 0;
 			}
 	}
-	motor[motorA] = motor[motorD] = 0;
+
 	wait1Msec(500);
 
 	return;
@@ -722,7 +730,7 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	{}
 	motor[motorA] = motor[motorD] = 0;
 	wait1Msec(500);
-	rotate(0, motor_power_rotate, 75);
+
 
 
 	if (quadrant == 1 || quadrant == 3)
@@ -785,21 +793,25 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 		}
 
 
-		while( count_13 < 5 && count_24 < 5)
+		while( count_13 < 2 && count_24 < 2)
 		{
 				if (count_13 % 2 == 1)
 				{
 
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -75);
+							rotate(1, motor_power_rotate, -90);
 
 							found_person = drive_path(width, motor_power_drive,  motor_power_rotate);
+
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -75);
+							rotate(1, motor_power_rotate, 0);
+							wait1Msec(1000);
+
 				}
 				else
 				{
+							wait1Msec(1000);
 							found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 							if (found_person == 1) return 1;
 							rotate(0, motor_power_rotate, 75);
@@ -812,6 +824,7 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				++count_24;
 		}
 		return 0;
+		wait1Msec(2000);
 }
 
 
@@ -825,9 +838,9 @@ task main()
 	const int Patient_Size = 2.75; // coke can radius*/
 	// const int Obsticle_Size = ; // party cup radius
 	const int MOTOR_POWER_DRIVE = 30;
-	const int MOTOR_POWER_ROTATE = 10;
-	const int BOUPHOSTREDON_LENGTH = 50;
-	const int BOUPHOSTREDON_WIDTH = 40;
+	const int MOTOR_POWER_ROTATE = 5;
+	const int BOUPHOSTREDON_LENGTH = 40;
+	const int BOUPHOSTREDON_WIDTH = 30;
 
 	//all data arrays
 	char people[4] = {'A', 'B', 'C', 'D'};
@@ -839,7 +852,7 @@ task main()
 	configure_all_sensors();
 
 	// Opening and error handling the reading file
-	TFileHandle fin;
+	/*TFileHandle fin;
 	bool ReadCheck = openReadPC(fin, "Peole_To_Save.txt");
 
 	if (!ReadCheck)
@@ -859,7 +872,7 @@ task main()
 	{
 		displayString(5, "Error: Fail to open file");
 		wait1Msec(5000);
-	}
+	}*/
 
 	//The program will only start if you press the enter button
 	while(!getButtonPress(buttonEnter))
@@ -867,32 +880,33 @@ task main()
 	while(getButtonPress(buttonEnter))
 	{}
 
-	for (int count = 0; count < 4; ++count)
+	for (int count = 1; count <= 1; ++count)
 	{
-		int quadrant = location[order[count]];
-		int name = people[order[count]];
-		int time_last_seen = times[order[count]];
+		/*int index = order[count];
+		int quadrant = location[index];
+		int name = people[index];
+		int time_last_seen = times[index];*/
 		time1[T1] = 0;
 		int saved_person = 0;
 		float time = 0;
 
-		exit_centre(30, MOTOR_POWER_ROTATE, quadrant);
+		exit_centre(30, MOTOR_POWER_ROTATE, count);
 
 	 	saved_person = bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
-	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, quadrant);
+	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, count);
 
-	 	rotate_to_begin(quadrant, MOTOR_POWER_ROTATE);
-	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, quadrant);
+	 	rotate_to_begin(count, MOTOR_POWER_ROTATE);
+	 	//return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
 
     time = time1[T1];
     time /= 1000;
 
-    calculate_exposure(time, time_last_seen, updated_times, order[count]);
-    Output(fout, name, updated_times[order[count]], saved_person);
+    //calculate_exposure(time, time_last_seen, updated_times, order[count]);
+   // Output(fout, name, updated_times[order[count]], saved_person);
 
 	}
 
-	closeFilePC(fout);
-	closeFilePC(fout);
+	//closeFilePC(fout);
+	//closeFilePC(fout);
 
 }
