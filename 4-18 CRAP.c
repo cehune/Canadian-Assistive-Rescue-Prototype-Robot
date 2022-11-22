@@ -31,7 +31,7 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				Reads input file and puts that information into the given parallel arrays
 */
 
-/*
+
 void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 {
 
@@ -43,10 +43,11 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 				Then we set the name, location, and time_last_seen
 				arrays at the index of count as the variables we just
 				created.
-		*//*
+		*/
 		char current_name = ' ';
 		int current_location = 0;
 		int time = 0;
+
 		readCharPC(fin, current_name);
 		name[count] = current_name;
 
@@ -82,7 +83,7 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 
 */
 
-/*
+
 void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 {
 	if (found_person == 1)
@@ -103,7 +104,7 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 			This part of the function should never happen. If it does, then the
 			function outputs that it could not find the person, and that they are
 			still lost out in the wilderness.
-	*/  /*
+	*/
 	else
 	{
 			string couldnt_find_person = "could not find ";
@@ -144,7 +145,7 @@ void Output (TFileHandle & fout, char name, float time_taken, int found_person)
 				value. The value at the second index, 1, represents the index of the second largest value
 				in last_time_seen, 7.
 
-*/  /*
+*/
 void calculate_order(int *last_time_seen, int *order)
 {
 	int temp = 0;
@@ -168,7 +169,7 @@ void calculate_order(int *last_time_seen, int *order)
                 /*
                 		Using temporary variables to temporarily store the value of an index
                 		while we switch it with the position of another.
-                */  /*
+                */
                 temp2 = order[j];
                 order[j] = order[i];
                 order[i] = temp2;
@@ -194,13 +195,13 @@ void calculate_order(int *last_time_seen, int *order)
 		Notes
 				The function adds the time_last_seen and time_to_save, and adds these values to
 				the updated times array at the index of patient_num
-*/  /*
+*/
 void calculate_exposure (float time_to_save, int time_last_seen, float *updated_times, int patient_num)
 {
 	updated_times[patient_num] = time_last_seen + time_to_save;
 	return;
 }
-*/
+
 
 //Config
 void configure_all_sensors()
@@ -869,8 +870,8 @@ task main()
 	configure_all_sensors();
 
 	// Opening and error handling the reading file
-	/*TFileHandle fin;
-	bool ReadCheck = openReadPC(fin, "Peole_To_Save.txt");
+	TFileHandle fin;
+	bool ReadCheck = openReadPC(fin, "People_To_Save.txt");
 
 	if (!ReadCheck)
 	{
@@ -883,13 +884,15 @@ task main()
 
 	// Error handling and opening the writing file
 	TFileHandle fout;
-	bool WriteCheck = writeTextPC(fout, "Report.txt");
+	bool WriteCheck = openWritePC(fout, "Report.txt");
 
 	if (!WriteCheck)
 	{
 		displayString(5, "Error: Fail to open file");
 		wait1Msec(5000);
-	}*/
+	}
+	displayString(7, "Ready to start!");
+
 
 	//The program will only start if you press the enter button
 	while(!getButtonPress(buttonEnter))
@@ -897,7 +900,10 @@ task main()
 	while(getButtonPress(buttonEnter))
 	{}
 
-	for (int count = 1; count <= 1; ++count)
+
+
+
+	for (int count = 1; count <= 4; ++count)
 	{
 		/*int index = order[count];
 		int quadrant = location[index];
@@ -905,26 +911,33 @@ task main()
 		int time_last_seen = times[index];
 		time1[T1] = 0;
 		int saved_person = 0;
-		float time = 0;*/
+		float time = 0;
 
 		exit_centre(30, MOTOR_POWER_ROTATE, count);
 	 	bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
 	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, count);
 
 	 	rotate_to_begin(count, MOTOR_POWER_ROTATE);
-	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
+	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);*/
+
+	 	int index = order[count - 1];
+	time1[T1] = 0;
+	int time_last_seen = times[index];
+		int saved_person = 1;
+		float time = 0;
+	wait1Msec(2000);
+	time = time1[T1];
+	time /= 1000;
 
 
 
 
-
-
-    //calculate_exposure(time, time_last_seen, updated_times, order[count]);
-   // Output(fout, name, updated_times[order[count]], saved_person);
-
+   calculate_exposure(time, time_last_seen, updated_times, index);
+   Output(fout, people[index], updated_times[index], saved_person);
+	++index;
 	}
 
-	//closeFilePC(fout);
-	//closeFilePC(fout);
+	closeFilePC(fin);
+	closeFilePC(fout);
 
 }

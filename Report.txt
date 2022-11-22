@@ -1,0 +1,4 @@
+J was exposed for 37.000000minutes
+T was exposed for 32.000000minutes
+R was exposed for 17.000000minutes
+N was exposed for 4.000000minutes
