@@ -84,16 +84,17 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 */
 
 
-void Output (TFileHandle & fout, char name, float time_taken, int found_person)
+void Output (TFileHandle & fout, char name, int time_taken, int found_person)
 {
 	if (found_person == 1)
 	{
 		string exposure_sentence = " was exposed for ";
 		string minutes_word = "minutes";
-
+		char space = ' ';
 		writeCharPC(fout, name);
 		writeTextPC(fout, exposure_sentence);
-		writeFloatPC(fout, time_taken);
+		writeLongPC(fout, time_taken);
+		writeCharPC(fout, space);
 		writeTextPC(fout, minutes_word);
 		writeEndlPC(fout);
 	}
@@ -196,7 +197,7 @@ void calculate_order(int *last_time_seen, int *order)
 				The function adds the time_last_seen and time_to_save, and adds these values to
 				the updated times array at the index of patient_num
 */
-void calculate_exposure (float time_to_save, int time_last_seen, float *updated_times, int patient_num)
+void calculate_exposure (int time_to_save, int time_last_seen, int *updated_times, int patient_num)
 {
 	updated_times[patient_num] = time_last_seen + time_to_save;
 	return;
@@ -865,7 +866,7 @@ task main()
 	int location[4] = {0, 0, 0, 0};
 	int times [4] = {0,0,0,0};
 	int order[4] = {0, 1, 2, 3};
-	float updated_times [4] = {0,0,0,0};
+	int updated_times [4] = {0,0,0,0};
 
 	configure_all_sensors();
 
@@ -924,7 +925,7 @@ task main()
 	time1[T1] = 0;
 	int time_last_seen = times[index];
 		int saved_person = 1;
-		float time = 0;
+		int time = 0;
 	wait1Msec(2000);
 	time = time1[T1];
 	time /= 1000;
