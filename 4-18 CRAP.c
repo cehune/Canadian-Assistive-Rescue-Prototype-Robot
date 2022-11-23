@@ -300,18 +300,14 @@ void rotate(bool dir, int motor_power, int angle)
 			The gyro counts should not have a net change after this function is called
 			because the rotations cancel eachother out.
 
-			Lastly, the function deletes the motor encoder counts when driving away and towards
-			the original path. It keeps the encoder counts from when it was driving past the obstacle
-			parallel to its original path because it would've traveled that distance
-			regardless, should it have not encountered an obstacle.
 */
 void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 {
-		int x = 5;
-		int y = 10;
+		int x = 15;
+		int y = 45;
 
 		wait1Msec(500);
-		int current_counts = nMotorEncoder[motorA];
+
 
 		//right turn and drive
 		rotate(0, motor_power_rotate, 85);
@@ -333,9 +329,8 @@ void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(2000);
 
-		//reassigns the motor encoder by subtracting the counts
-		//while traveling away and toward its original path
-		nMotorEncoder[motorA] = current_counts + (2*x*180/(PI*2.75));
+
+	return;
 }
 
 
@@ -427,17 +422,28 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 			//If the ir sensor senses a something close, but the ultrasonic doesnt
 			//Then we know it is a human, because the humans are shorter than the
 			//height of the ultrasonic sensor.
+	/*
 			if (SensorValue[S1] <= x && SensorValue[S2] >= 1)
 			{
 					catch_person(motor_power_drive);
 					return 1;
-			}
-			/*if (SensorValue[S2] <= 100)
+			}*/
+
+			if (SensorValue[S2] <= 10)
 			{
 				//checks for obstacles using the ultrasonic sensor
+				motor[motorA] = motor[motorD] = 0;
+				wait1Msec(500);
+				int current = nMotorEncoder[motorA];
+				int to_travel = ((distance * TO_COUNTS) - (45 * TO_COUNTS) - current) * (2.80 * PI) / 180;
+
 				manouver_obstacle(motor_power_drive, motor_power_rotate);
-				motor[motorA] = motor[motorD] = motor_power_drive;
-			}*/
+				nMotorEncoder[motorA] = current;
+				wait1Msec(500);
+
+				drive_dist(to_travel, motor_power_drive);
+				return 0;
+			}
 
 
 	}
@@ -740,6 +746,7 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	motor[motorA] = motor[motorD] = motor_power_drive;
 	while(SensorValue[S3] != 1)
 	{}
+
 	motor[motorA] = motor[motorD] = 0;
 	wait1Msec(500);
 
@@ -844,7 +851,7 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 				++count_13;
 				++count_24;
 		}
-
+//found_person = drive_path(length, motor_power_drive, motor_power_rotate);
 		wait1Msec(1000);
 		return 0;
 
