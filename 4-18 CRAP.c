@@ -84,7 +84,7 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 */
 
 
-void Output (TFileHandle & fout, char name, int time_taken, int found_person)
+void Output (TFileHandle & fout, char name, int time_taken, const int found_person)
 {
 	if (found_person == 1)
 	{
@@ -314,22 +314,22 @@ void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 		int current_counts = nMotorEncoder[motorA];
 
 		//right turn and drive
-		rotate(0, motor_power_rotate, 90);
+		rotate(0, motor_power_rotate, 85);
 		drive_dist(x, motor_power_drive);
 
 
 		//left turn and drive past obstacle
-		rotate(1, motor_power_rotate, -90);
+		rotate(1, motor_power_rotate, -85);
 		drive_dist(y, motor_power_drive);
 
 
 		//left turn to return to path
-		rotate(1, motor_power_rotate, -90);
+		rotate(1, motor_power_rotate, -85);
 		drive_dist(x, motor_power_drive);
 
 
 		//right turn, faces its original path
-		rotate(0, motor_power_rotate, 90);
+		rotate(0, motor_power_rotate, 85);
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(2000);
 
@@ -367,7 +367,7 @@ void catch_person( int motor_power)
 
 	nMotorEncoder[motorB] = 0;
 	motor[motorB]= -5;
-	while(nMotorEncoder[motorB] > -105)
+	while(nMotorEncoder[motorB] > -110)
 	{}
 	motor[motorB]= 0;
 	wait1Msec(1000);
@@ -376,16 +376,19 @@ void catch_person( int motor_power)
 	nMotorEncoder[motorA] = 0;
 	int const distance = 30;
 	int const distance_counts = distance * 180 / (2.75 * PI);
+
 	motor[motorA] = motor[motorD] = motor_power;
-	while(nMotorEncoder[motorA] < distance_counts)
+	while(SensorValue[S1] > 2 && nMotorEncoder[motorA] < distance_counts)
 	{}
+
 		motor[motorA] = motor[motorD] = 0;
 	wait1Msec(500);
 	//gate closes.
 	motor[motorB]= 7;
-	while(nMotorEncoder[motorB] < 15)
+	while(nMotorEncoder[motorB] < 20)
 	{}
 
+	motor[motorB] = 0;
 	return;
 }
 
@@ -412,7 +415,7 @@ void catch_person( int motor_power)
 
 int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 {
-	int x = 10;
+	int x = 50;
 	const int TO_COUNTS = 180/(PI*2.75);
 
 	nMotorEncoder[motorA] = 0;
@@ -420,21 +423,22 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 
 	while(nMotorEncoder[motorA] < distance*TO_COUNTS)
 	{
-			if (SensorValue[S2] <= x)
+
+			//If the ir sensor senses a something close, but the ultrasonic doesnt
+			//Then we know it is a human, because the humans are shorter than the
+			//height of the ultrasonic sensor.
+			if (SensorValue[S1] <= x && SensorValue[S2] >= 1)
+			{
+					catch_person(motor_power_drive);
+					return 1;
+			}
+			/*if (SensorValue[S2] <= 100)
 			{
 				//checks for obstacles using the ultrasonic sensor
 				manouver_obstacle(motor_power_drive, motor_power_rotate);
 				motor[motorA] = motor[motorD] = motor_power_drive;
-			}
-/*
-			//If the ir sensor senses a something close, but the ultrasonic doesnt
-			//Then we know it is a human, because the humans are shorter than the
-			//height of the ultrasonic sensor.
-			else if (SensorValue[S1] <= x && SensorValue[S2] >= x)
-			{
-					catch_person(motor_power_drive);
-					return 1;
 			}*/
+
 
 	}
 
@@ -913,21 +917,22 @@ task main()
 		time1[T1] = 0;
 		int saved_person = 0;
 		float time = 0;
+*/
+		int index = order[count - 1];
+		int time_last_seen = times[index];
 
+		time1[T1] = 0;
 		exit_centre(30, MOTOR_POWER_ROTATE, count);
-	 	bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
+	 	int saved_person = bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
 	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, count);
 
 	 	rotate_to_begin(count, MOTOR_POWER_ROTATE);
-	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);*/
+	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, count);
 
-	 	int index = order[count - 1];
-	time1[T1] = 0;
-	int time_last_seen = times[index];
-		int saved_person = 1;
-		int time = 0;
-	wait1Msec(2000);
-	time = time1[T1];
+
+
+
+	int time = time1[T1];
 	time /= 1000;
 
 
