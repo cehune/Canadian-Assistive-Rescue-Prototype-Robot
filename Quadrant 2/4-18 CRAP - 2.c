@@ -606,8 +606,8 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 
 		int x = 50;
 
-		int border = 3;
-		int center = 5;
+		int border = 5;
+		int center = 1;
 		int rotation_dir = 0;
 		int rotation_angle = 90;
 		/* for which direction it turns to face the center once
@@ -757,7 +757,7 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	}
 
 	motor[motorA] = motor[motorD] = motor_power_drive;
-	while(SensorValue[S3] != 5)
+	while(SensorValue[S3] != 1)
 	{}
 
 	motor[motorA] = motor[motorD] = 0;
