@@ -297,7 +297,7 @@ void rotate(bool dir, int motor_power, int angle)
 void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 {
 		int x = 15;
-		int y = 45;
+		int y = 50;
 
 		wait1Msec(500);
 
@@ -420,19 +420,19 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 			//Then we know it is a human, because the humans are shorter than the
 			//height of the ultrasonic sensor.
 
-			if (SensorValue[S1] <= x && SensorValue[S2] >= 0)
+			if (SensorValue[S1] <= x && SensorValue[S2] >= 80)
 			{
 					catch_person(motor_power_drive);
 					return 1;
 			}
-/*
-			if (SensorValue[S2] <= 10)
+
+			if (SensorValue[S2] <= 50)
 			{
 				//checks for obstacles using the ultrasonic sensor
 				motor[motorA] = motor[motorD] = 0;
 				wait1Msec(500);
 				int current = nMotorEncoder[motorA];
-				int to_travel = ((distance * TO_COUNTS) - (45 * TO_COUNTS) - current) * (2.80 * PI) / 180;
+				int to_travel = ((distance * TO_COUNTS) - (50 * TO_COUNTS) - current) * (2.80 * PI) / 180;
 
 				manouver_obstacle(motor_power_drive, motor_power_rotate);
 				nMotorEncoder[motorA] = current;
@@ -442,7 +442,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 				return 0;
 			}
 
-*/
+
 	}
 
 	motor[motorA] = motor[motorD] = 0;
@@ -757,7 +757,7 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	}
 
 	motor[motorA] = motor[motorD] = motor_power_drive;
-	while(SensorValue[S3] != 1)
+	while(SensorValue[S3] != 5)
 	{}
 
 	motor[motorA] = motor[motorD] = 0;
@@ -767,13 +767,13 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 
 	if (quadrant == 1 || quadrant == 3)
 	{
-			rotate(0, motor_power_rotate, 85);
+			rotate(0, motor_power_rotate, 82);
 
 	}
 	else if (quadrant == 2 || quadrant == 4)
 	{
 
-			rotate(1, motor_power_rotate, -85);
+			rotate(1, motor_power_rotate, -82);
 	}
 
 
@@ -834,18 +834,15 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -85);
-
+							rotate(1, motor_power_rotate, -82);
 
 
 
 							found_person = drive_path(width, motor_power_drive,  motor_power_rotate);
 
 
-
-
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -85);
+							rotate(1, motor_power_rotate, -82);
 				}
 				else
 				{
@@ -965,6 +962,8 @@ task main()
 
    calculate_exposure(time, time_last_seen, updated_time);
    Output(fout, patient_id, updated_time, saved_person);
+
+
 
 
 
