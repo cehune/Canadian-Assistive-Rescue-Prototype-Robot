@@ -32,34 +32,27 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 */
 
 
-void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
+void Input (TFileHandle & fin, int & id, int & location, int & time_last_seen)
 {
 
-	int count = 0;
-	while(count < 4)
-	{
 		/*
 				Creating variables to read the file info into.
 				Then we set the name, location, and time_last_seen
 				arrays at the index of count as the variables we just
 				created.
 		*/
-		char current_name = ' ';
+		int current_id = 0;
 		int current_location = 0;
 		int time = 0;
 
-		readCharPC(fin, current_name);
-		name[count] = current_name;
+		readIntPC(fin, current_id);
+		id = current_id;
 
 		readIntPC(fin, current_location);
-		location[count] = current_location;
+		location = current_location;
 
 		readIntPC(fin, time);
-		time_last_seen[count] = time;
-
-		++count;
-	}
-
+		time_last_seen = time;
 	return;
 }
 
@@ -84,14 +77,14 @@ void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen)
 */
 
 
-void Output (TFileHandle & fout, char name, int time_taken, const int found_person)
+void Output (TFileHandle & fout, int & id, int & time_taken, const int found_person)
 {
 	if (found_person == 1)
 	{
 		string exposure_sentence = " was exposed for ";
 		string minutes_word = "minutes";
 		char space = ' ';
-		writeCharPC(fout, name);
+		writeLongPC(fout, id);
 		writeTextPC(fout, exposure_sentence);
 		writeLongPC(fout, time_taken);
 		writeCharPC(fout, space);
@@ -109,7 +102,7 @@ void Output (TFileHandle & fout, char name, int time_taken, const int found_pers
 	else
 	{
 			string couldnt_find_person = "could not find ";
-			writeCharPC(fout, name);
+			writeLongPC(fout, id);
 			writeEndlPC(fout);
 	}
 		return;
@@ -197,9 +190,9 @@ void calculate_order(int *last_time_seen, int *order)
 				The function adds the time_last_seen and time_to_save, and adds these values to
 				the updated times array at the index of patient_num
 */
-void calculate_exposure (int time_to_save, int time_last_seen, int *updated_times, int patient_num)
+void calculate_exposure (const int time_to_save, const int time_last_seen, int & updated_times)
 {
-	updated_times[patient_num] = time_last_seen + time_to_save;
+	updated_times = time_last_seen + time_to_save;
 	return;
 }
 
@@ -427,12 +420,12 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 			//Then we know it is a human, because the humans are shorter than the
 			//height of the ultrasonic sensor.
 
-			if (SensorValue[S1] <= x && SensorValue[S2] >= 1)
+			if (SensorValue[S1] <= x && SensorValue[S2] >= 0)
 			{
 					catch_person(motor_power_drive);
 					return 1;
 			}
-
+/*
 			if (SensorValue[S2] <= 10)
 			{
 				//checks for obstacles using the ultrasonic sensor
@@ -449,7 +442,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 				return 0;
 			}
 
-
+*/
 	}
 
 	motor[motorA] = motor[motorD] = 0;
@@ -614,6 +607,7 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		int x = 50;
 
 		int border = 3;
+		int center = 5;
 		int rotation_dir = 0;
 		int rotation_angle = 90;
 		/* for which direction it turns to face the center once
@@ -625,6 +619,7 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		if (quadrant == 1)
 		{
 				border = 3; // int for the colour green
+				center = 5;
 
 		}
 		else if (quadrant == 2)
@@ -661,17 +656,13 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		/*
 				The int corresponds to the colour black, which is how we're marking the center;
 		*/
-		while(SensorValue[S3] != 1)
+		while(SensorValue[S3] != center)
 		{}
 
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(1000);
 		nMotorEncoder[motorA] = 0;
-		motor[motorA] = motor[motorD] = motor_power_drive;
-
-		//drives a set distance forward
-		while(nMotorEncoder[motorA] < (15 * 180 / (PI * 2.80)))
-		{}
+		drive_dist(15, motor_power_drive);
 		wait1Msec(500);
 
 		/*
@@ -898,11 +889,11 @@ task main()
 	const int BOUPHOSTREDON_WIDTH = 20;
 
 	//all data arrays
-	char people[4] = {'A', 'B', 'C', 'D'};
-	int location[4] = {0, 0, 0, 0};
-	int times [4] = {0,0,0,0};
-	int order[4] = {0, 1, 2, 3};
-	int updated_times [4] = {0,0,0,0};
+	int patient_id = 0;
+	int quadrant = 0;
+	int time_last_seen = 0;
+	//int order[4] = {0, 1, 2, 3};
+	int updated_time = 0;
 
 	configure_all_sensors();
 
@@ -916,8 +907,8 @@ task main()
 		wait1Msec(5000);
 	}
 
-	Input(fin, people, location, times);
-	calculate_order(times, order);
+	Input(fin, patient_id, quadrant, time_last_seen);
+	//calculate_order(times, order);
 
 	// Error handling and opening the writing file
 	TFileHandle fout;
@@ -940,8 +931,7 @@ task main()
 
 
 
-	for (int count = 1; count <= 4; ++count)
-	{
+
 		/*int index = order[count];
 		int quadrant = location[index];
 		int name = people[index];
@@ -950,17 +940,20 @@ task main()
 		int saved_person = 0;
 		float time = 0;
 */
-		int index = order[count - 1];
-		int time_last_seen = times[index];
+		//int index = order[count - 1];
+
 
 		time1[T1] = 0;
-		exit_centre(30, MOTOR_POWER_ROTATE, location[index]);
+		exit_centre(30, MOTOR_POWER_ROTATE, quadrant);
 	 	int saved_person = bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
-	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, location[index]);
+	 			BOUPHOSTREDON_LENGTH, BOUPHOSTREDON_WIDTH, quadrant);
 
-	 	rotate_to_begin(location[index], MOTOR_POWER_ROTATE);
-	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, location[index]);
-		release_person();
+	 	rotate_to_begin(quadrant, MOTOR_POWER_ROTATE);
+	 	return_to_begin(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE, quadrant);
+		if (saved_person)
+		{
+			release_person();
+		}
 
 
 
@@ -970,11 +963,12 @@ task main()
 
 
 
-   calculate_exposure(time, time_last_seen, updated_times, index);
-   Output(fout, people[index], updated_times[index], saved_person);
-	++index;
-	}
+   calculate_exposure(time, time_last_seen, updated_time);
+   Output(fout, patient_id, updated_time, saved_person);
 
+
+
+//Output(fout, patient_id, updated_time, saved_person);
 	closeFilePC(fin);
 	closeFilePC(fout);
 
