@@ -1,4 +1,4 @@
-# Canadian-Assistive-Rescue-Prototype-Robot
+# Canadian-Rescue-Assistive-Prototype-Robot
 
 # -we can figure out the readme later lol-
 
