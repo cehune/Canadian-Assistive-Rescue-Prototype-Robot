@@ -1,4 +1,4 @@
-#include "PC_FileIO.c"
+#include "../PC_FileIO.c"
 
 /*void Input (TFileHandle & fin, char *name, int *location, int *time_last_seen);
 void Output (TFileHandle & fout, char name, float time_taken, int found_person);
@@ -896,7 +896,7 @@ task main()
 
 	// Opening and error handling the reading file
 	TFileHandle fin;
-	bool ReadCheck = openReadPC(fin, "People_To_Save.txt");
+	bool ReadCheck = openReadPC(fin, "rescue_one.txt");
 
 	if (!ReadCheck)
 	{
@@ -909,7 +909,7 @@ task main()
 
 	// Error handling and opening the writing file
 	TFileHandle fout;
-	bool WriteCheck = openWritePC(fout, "Report.txt");
+	bool WriteCheck = openWritePC(fout, "report_one.txt");
 
 	if (!WriteCheck)
 	{
