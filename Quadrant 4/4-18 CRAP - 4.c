@@ -297,7 +297,7 @@ void rotate(bool dir, int motor_power, int angle)
 void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
 {
 		int x = 15;
-		int y = 50;
+		int y = 55;
 
 		wait1Msec(500);
 
@@ -657,7 +657,7 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		/*
 				The int corresponds to the colour black, which is how we're marking the center;
 		*/
-		while(SensorValue[S3] != center)
+		while(SensorValue[S3] != 5)
 		{}
 
 		motor[motorA] = motor[motorD] = 0;
@@ -758,7 +758,7 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 	}
 
 	motor[motorA] = motor[motorD] = motor_power_drive;
-	while(SensorValue[S3] != 1)
+	while(SensorValue[S3] != 5 && SensorValue[S3] != 3)
 	{}
 
 	motor[motorA] = motor[motorD] = 0;
@@ -768,13 +768,13 @@ void exit_centre(int motor_power_drive, int motor_power_rotate, int quadrant)
 
 	if (quadrant == 1 || quadrant == 3)
 	{
-			rotate(0, motor_power_rotate, 82);
+			rotate(0, motor_power_rotate, 85);
 
 	}
 	else if (quadrant == 2 || quadrant == 4)
 	{
 
-			rotate(1, motor_power_rotate, -82);
+			rotate(1, motor_power_rotate, -85);
 	}
 
 
@@ -835,7 +835,7 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -82);
+							rotate(1, motor_power_rotate, -86);
 
 
 
@@ -843,7 +843,7 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -82);
+							rotate(1, motor_power_rotate, -86);
 				}
 				else
 				{
@@ -852,7 +852,7 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 							wait1Msec(1000);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 90);
+							rotate(0, motor_power_rotate, 86);
 
 							wait1Msec(1000);
 
@@ -860,7 +860,7 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 							wait1Msec(1000);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 90);
+							rotate(0, motor_power_rotate, 86);
 				}
 				++count_13;
 				++count_24;
@@ -884,7 +884,7 @@ task main()
 	const int MOTOR_POWER_DRIVE = 30;
 	const int MOTOR_POWER_ROTATE = 5;
 	const int BOUPHOSTREDON_LENGTH = 70;
-	const int BOUPHOSTREDON_WIDTH = 20;
+	const int BOUPHOSTREDON_WIDTH = 17;
 
 	//all data arrays
 	int patient_id = 0;
