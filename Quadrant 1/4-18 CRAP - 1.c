@@ -607,7 +607,7 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		int x = 50;
 
 		int border = 3;
-		int center = 5;
+		int center = 1;
 		int rotation_dir = 0;
 		int rotation_angle = 90;
 		/* for which direction it turns to face the center once
@@ -647,6 +647,8 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(3000);
+		drive_dist(10, motor_power_drive);
+		wait1Msec(1000);
 
 		//rotates to face the center
 		rotate(rotation_dir, motor_power_rotate, rotation_angle);
@@ -663,7 +665,8 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		wait1Msec(1000);
 		nMotorEncoder[motorA] = 0;
 		drive_dist(15, motor_power_drive);
-		wait1Msec(500);
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(1000);
 
 		/*
 				depending on the direction its facing, it needs to turn until it faces the
@@ -882,7 +885,7 @@ task main()
 	// const int Obsticle_Size = ; // party cup radius
 	const int MOTOR_POWER_DRIVE = 30;
 	const int MOTOR_POWER_ROTATE = 5;
-	const int BOUPHOSTREDON_LENGTH = 75;
+	const int BOUPHOSTREDON_LENGTH = 70;
 	const int BOUPHOSTREDON_WIDTH = 20;
 
 	//all data arrays

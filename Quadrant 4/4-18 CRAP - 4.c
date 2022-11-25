@@ -647,7 +647,8 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(3000);
-
+		drive_dist(10, motor_power_drive);
+		wait1Msec(1000);
 		//rotates to face the center
 		rotate(rotation_dir, motor_power_rotate, rotation_angle);
 		wait1Msec(1000);
@@ -882,7 +883,7 @@ task main()
 	// const int Obsticle_Size = ; // party cup radius
 	const int MOTOR_POWER_DRIVE = 30;
 	const int MOTOR_POWER_ROTATE = 5;
-	const int BOUPHOSTREDON_LENGTH = 75;
+	const int BOUPHOSTREDON_LENGTH = 70;
 	const int BOUPHOSTREDON_WIDTH = 20;
 
 	//all data arrays
