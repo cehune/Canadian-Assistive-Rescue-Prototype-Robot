@@ -17,18 +17,17 @@ int bouphostredon(int motor_power_drive, int motor_power_rotate, int length, int
 
 
 /*
-		Fills arrays witht the information of the patients
+		Fills information about a patient
 
 		Parameters
 				TFileHandle & fin: Reference to the input file
-				char *name: Array that will store Patient nams
-				int *location: Array that will store the quadrants each person
+				int id: The patients id
+				int location: Quadrant the person is in
 						is in
-				int *time_last_seen: Array that will store the amount of time in
-						minutes that the person has been lost for
+				int time_last_seen: Minutes that the person has been lost for
 
 		Note
-				Reads input file and puts that information into the given parallel arrays
+				Reads input file and puts that information into the given info variables
 */
 
 
@@ -62,7 +61,7 @@ void Input (TFileHandle & fin, int & id, int & location, int & time_last_seen)
 
 			Parameters
 					TFileHandle & fout: A reference to the output file
-					char name: The patients name
+					char id: The patients namid
 					float time_taken: The total time that a person was exposed
 							to the weather for.
 					int found_person: An integer representing whether the robot actually found
@@ -102,6 +101,7 @@ void Output (TFileHandle & fout, int & id, int & time_taken, const int found_per
 	else
 	{
 			string couldnt_find_person = "could not find ";
+			writeTextPC(fout, couldnt_find_person);
 			writeLongPC(fout, id);
 			writeEndlPC(fout);
 	}
@@ -112,7 +112,8 @@ void Output (TFileHandle & fout, int & id, int & time_taken, const int found_per
 
 /*
 		This is a selection sorting algorithm to calculate the order that the robot should
-		save people.
+		save people. ARCHIVED BECAUSE THIS WAS NEEDED FOR STRING ARRAYS, AND THERE ARE NO STRING ARRAYS
+		IN ROBOTC
 
 		Parameters
 				int *last_time_seen: The array containing the last time that each person was seen,
@@ -139,7 +140,7 @@ void Output (TFileHandle & fout, int & id, int & time_taken, const int found_per
 				value. The value at the second index, 1, represents the index of the second largest value
 				in last_time_seen, 7.
 
-*/
+
 void calculate_order(int *last_time_seen, int *order)
 {
 	int temp = 0;
@@ -160,10 +161,10 @@ void calculate_order(int *last_time_seen, int *order)
                 times_copy[j] = times_copy[i];
                 times_copy[i] = temp;
 
-                /*
+
                 		Using temporary variables to temporarily store the value of an index
                 		while we switch it with the position of another.
-                */
+
                 temp2 = order[j];
                 order[j] = order[i];
                 order[i] = temp2;
@@ -172,7 +173,7 @@ void calculate_order(int *last_time_seen, int *order)
     }
 	return;
 }
-
+*/
 
 /*
 		Calculates the time a person was exposed to the winter.
@@ -239,7 +240,7 @@ void configure_all_sensors()
 
 
 */
-void rotate(bool dir, int motor_power, int angle)
+void rotate(const bool dir, const int motor_power, const int angle)
 {
 	//current gyro value
 	int  current_dir = (SensorValue(S4));
@@ -294,7 +295,7 @@ void rotate(bool dir, int motor_power, int angle)
 			because the rotations cancel eachother out.
 
 */
-void manouver_obstacle(int motor_power_drive, int motor_power_rotate)
+void manouver_obstacle(const int motor_power_drive, const int motor_power_rotate)
 {
 		int x = 15;
 		int y = 55;
@@ -372,8 +373,8 @@ void catch_person( int motor_power)
 		motor[motorA] = motor[motorD] = 0;
 	wait1Msec(500);
 	//gate closes.
-	motor[motorB]= 7;
-	while(nMotorEncoder[motorB] < 20)
+	motor[motorB]= 9;
+	while(nMotorEncoder[motorB] < 40)
 	{}
 
 	motor[motorB] = 0;
@@ -402,12 +403,14 @@ void catch_person( int motor_power)
 				function, and end prematurely.
 
 				If it doesn't find either, it just travels the full distance.
+				Encoder counts were uncooperative, so it just drives the leftover distance.
+				Cannot check for another obstacle or person after it manouvers one in a given legnth.
 
 */
 
-int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
+int drive_path(const int distance, const int motor_power_drive, const int motor_power_rotate)
 {
-	int x = 50;
+
 	const int TO_COUNTS = 180/(PI*2.75);
 
 	nMotorEncoder[motorA] = 0;
@@ -420,7 +423,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 			//Then we know it is a human, because the humans are shorter than the
 			//height of the ultrasonic sensor.
 
-			if (SensorValue[S1] <= x && SensorValue[S2] >= 80)
+			if (SensorValue[S1] <= 50 && SensorValue[S2] >= 100)
 			{
 					catch_person(motor_power_drive);
 					return 1;
@@ -466,7 +469,7 @@ int drive_path(int distance, int motor_power_drive, int motor_power_rotate)
 				function needs to call this, and it will mess with tracking the
 				path if we use motor A.
 */
-void drive_dist (int distance, int motor_power)
+void drive_dist (const int distance, const int motor_power)
 {
 	nMotorEncoder[motorD] = 0;
 	motor[motorA] = motor[motorD] = motor_power;
@@ -507,7 +510,7 @@ void drive_dist (int distance, int motor_power)
 				until it faces upwards, the same direction as the starting reference angle.
 */
 
-void rotate_to_begin(int quadrant, int motor_power)
+void rotate_to_begin(const int quadrant,const  int motor_power)
 {
 	wait1Msec(2000);
 	//Tracks the current angle
@@ -604,10 +607,10 @@ Notes
 void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadrant)
 {
 
-		int x = 50;
 
-		int border = 4;
-		int center = 1;
+
+		int border = 3;
+		int center = 5;
 		int rotation_dir = 0;
 		int rotation_angle = 90;
 		/* for which direction it turns to face the center once
@@ -619,7 +622,7 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		if (quadrant == 1)
 		{
 				border = 3; // int for the colour green
-				center = 5;
+
 
 		}
 		else if (quadrant == 2)
@@ -627,12 +630,14 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 				border = 5; //int for the colour red
 				rotation_dir = 1;
 				rotation_angle = -90;
+				center = 3; // center colour green
 		}
 		else if (quadrant == 3)
 		{
 				border = 4; // int for the colour yellow
+				center = 3;
 		}
-		else if (quadrant == 4)
+		else
 		{
 				border = 2; // int for the colour blue
 				rotation_dir = 1;
@@ -642,12 +647,13 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		nMotorEncoder[motorA] = 0;
 		motor[motorA] = motor[motorD] = motor_power_drive;
 
-		while(SensorValue[S3] != 5)
+		while(SensorValue[S3] != border)
 		{}
 
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(3000);
 		drive_dist(10, motor_power_drive);
+		wait1Msec(1000);
 
 		//rotates to face the center
 		rotate(rotation_dir, motor_power_rotate, rotation_angle);
@@ -657,14 +663,15 @@ void return_to_begin (int motor_power_drive, int motor_power_rotate, int quadran
 		/*
 				The int corresponds to the colour black, which is how we're marking the center;
 		*/
-		while(SensorValue[S3] != 3)
+		while(SensorValue[S3] != 5)
 		{}
 
 		motor[motorA] = motor[motorD] = 0;
 		wait1Msec(1000);
 		nMotorEncoder[motorA] = 0;
 		drive_dist(15, motor_power_drive);
-		wait1Msec(500);
+		motor[motorA] = motor[motorD] = 0;
+		wait1Msec(1000);
 
 		/*
 				depending on the direction its facing, it needs to turn until it faces the
@@ -835,7 +842,7 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -85);
+							rotate(1, motor_power_rotate, -86);
 
 
 
@@ -843,7 +850,7 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 
 							if (found_person == 1) return 1;
-							rotate(1, motor_power_rotate, -85);
+							rotate(1, motor_power_rotate, -86);
 				}
 				else
 				{
@@ -852,7 +859,7 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 							wait1Msec(1000);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 85);
+							rotate(0, motor_power_rotate, 86);
 
 							wait1Msec(1000);
 
@@ -860,7 +867,7 @@ int bouphostredon(const int motor_power_drive, const int motor_power_rotate,
 
 							wait1Msec(1000);
 							if (found_person == 1) return 1;
-							rotate(0, motor_power_rotate, 85);
+							rotate(0, motor_power_rotate, 86);
 				}
 				++count_13;
 				++count_24;
@@ -876,11 +883,7 @@ task main()
 {
 
 	// initialization
-	/*const int ROTATE_90 = 90;
-	const int Robot_Length = 32;
-	const int Robot_Width = 18;
-	const int Patient_Size = 2.75; // coke can radius*/
-	// const int Obsticle_Size = ; // party cup radius
+
 	const int MOTOR_POWER_DRIVE = 30;
 	const int MOTOR_POWER_ROTATE = 5;
 	const int BOUPHOSTREDON_LENGTH = 70;
@@ -890,7 +893,7 @@ task main()
 	int patient_id = 0;
 	int quadrant = 0;
 	int time_last_seen = 0;
-	//int order[4] = {0, 1, 2, 3};
+	//int order[4] = {0, 1, 2, 3}; //archive from the previous version
 	int updated_time = 0;
 
 	configure_all_sensors();
@@ -926,21 +929,6 @@ task main()
 	while(getButtonPress(buttonEnter))
 	{}
 
-
-
-
-
-		/*int index = order[count];
-		int quadrant = location[index];
-		int name = people[index];
-		int time_last_seen = times[index];
-		time1[T1] = 0;
-		int saved_person = 0;
-		float time = 0;
-*/
-		//int index = order[count - 1];
-
-
 		time1[T1] = 0;
 		exit_centre(30, MOTOR_POWER_ROTATE, quadrant);
 	 	int saved_person = bouphostredon(MOTOR_POWER_DRIVE, MOTOR_POWER_ROTATE,
@@ -953,20 +941,11 @@ task main()
 			release_person();
 		}
 
-
-
 	int time = time1[T1];
 	time /= 1000;
 
-
-
-
    calculate_exposure(time, time_last_seen, updated_time);
    Output(fout, patient_id, updated_time, saved_person);
-
-
-
-
 
 //Output(fout, patient_id, updated_time, saved_person);
 	closeFilePC(fin);
