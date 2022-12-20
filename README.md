@@ -15,5 +15,9 @@ The robot is created using a LEGO EV3 Brick, and programmed in RobotC. Given an 
 
 Once the robot finds a person, it gently sweeps them in, rotates to face the x-axis, and returns to the x-axis. It then turns toward the center and returns to safely drop off the person. Afterward, it outputs the time of exposure, in an output file. 
 
+If the robot does not find a person, it travels to the end of the boustrophdon then returns back, outputting that it could not find the patient. 
+
+Although there are different files for each quadrant, each contains the same information. We had to seperate them to write 4 distinct output reports. Otherwise, each file is the same, and has the same decisions and algorithms to go to any quadrant, depending on what the input file instructs. 
+
 
 
