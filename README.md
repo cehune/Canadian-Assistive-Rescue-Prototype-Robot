@@ -3,7 +3,7 @@
 Final Project for the 1A Mechatronics Engineering Term at the University of Waterloo. 
 ![Untitled design (4)](https://user-images.githubusercontent.com/71574223/202064548-eb99529f-b643-4678-8e70-7aa5af253d09.png)
 
-We are group 4-18. Our members include [Kevin Wang](https://github.com/kevinjunkaiwang), [Vedha Mereddy](https://github.com/vedhamereddy), Janet Pham, and [Mckale Chung](https://github.com/mckalechung). 
+We are group 4-18. Our members include [Kevin Wang](https://github.com/kevinjunkaiwang), [Vedha Mereddy](https://github.com/vedhamereddy), [Janet Pham](https://github.com/janetPham), and [Mckale Chung](https://github.com/mckalechung). 
 
 # Purpose
 With the susceptibility of individuals to get lost in harsh, isolated environments with extreme negative temperatures, rescue missions must be accurate, efficient, and safe. However, sending a rescue team to save these victims comes with severe risks due to the dangers and challenges of such environments. There is also a high probability that the mission will fail and put more lives at stake. 
